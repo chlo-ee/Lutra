@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lutra</title>
+    <link rel="stylesheet" href="static/style.css">
+    <link rel="stylesheet" href="static/fonts/open-iconic-1.1.1/font/css/open-iconic.css">
+    <script src="static/script.js"></script>
+</head>
+<body>
+<div id="head">
+    <div id="head-title">
+        <span>Lutra</span>
+    </div>
+    {% if username %}
+        <div id="user-section">
+            <span class="oi" data-glyph="person" aria-hidden="true"></span>
+            <span>{{ username }}</span>
+        </div>
+    {% endif %}
+</div>
+<div id="content">
+    <div id="content-login-container">
+        <div id="content-login-border">
+            <span id="content-login-text">Log.In</span>
+            <input type="text" class="login-input" id="login-username" autofocus />
+            <input type="password" class="login-input" id="login-password" />
+        </div>
+    </div>
+    <div id="content-code"></div>
+</div>
+<div id="footer">
+    <p>
+        Lutra v{{ version }}
+    </p>
+</div>
+</body>
+</html>

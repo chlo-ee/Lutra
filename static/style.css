@@ -1,0 +1,124 @@
+@font-face {
+  font-family: Comfortaa;
+  src: url(fonts/Comfortaa/Comfortaa-VariableFont_wght.ttf);
+}
+
+@font-face {
+    font-family: ShareTechMono;
+    src: url(fonts/Share_Tech_Mono/ShareTechMono-Regular.ttf);
+  }
+
+body {
+    background-color: #0A0A0A;
+    color: #3FB5A0;
+    font-family: Comfortaa;
+    margin: 0;
+    overflow: hidden;
+}
+
+#content {
+    position: absolute;
+    top: 4em;
+    bottom: 3em;
+    width: 100%;
+}
+
+#head {
+    background-color: #1E1E1E;
+    left: 0;
+    right: 0;
+    padding: 0 1em 0 1em;
+    height: 3em;
+    position: absolute;
+    box-shadow: 0px 0px 20px;
+}
+#footer {
+    background-color: #1E1E1E;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 0 1em 0 1em;
+    height: 3em;
+    position: absolute;
+    box-shadow: 0px -10px 10px #1E1E1E;
+}
+
+#user-section {
+    margin-top: 1em;
+    float: right;
+}
+
+#head-title {
+    font-weight: bold;
+    font-size: 1.5em;
+    margin-top: 0.5em;
+    float:left;
+}
+
+#content-login-container {
+    position: absolute;
+    top: 50%;
+    margin: auto;
+    width: 100%;
+    transform: translateY(-50%);
+}
+
+.login-input {
+    margin: 0.5em 1em 0.5em 1em;
+    display: block;
+    background: #0A0A0A;
+    border: 1px solid #3FB5A0;
+    border-right: none;
+    border-top: none;
+    outline: none;
+    color: inherit;
+    font-family: inherit;
+}
+
+#content-login-border {
+    margin: auto;
+    border: 2px solid #3FB5A0;
+    width: fit-content;
+    padding: 0;
+    border-radius: 2px;
+}
+
+#content-login-text {
+    margin: 0 0 0.5em 0;
+    padding: 0.5em 0 0.5em 0;
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-size: larger;
+    background-color: #3FB5A0;
+    color: #0A0A0A;
+    user-select: none;
+}
+
+#content-code {
+    color: #2E2E2E;
+    font-family: ShareTechMono;
+    left: 0;
+    top: 0;
+    bottom: 1em;
+    position: absolute;
+    overflow: hidden;
+    z-index: -1;
+    white-space: pre;
+    user-select: none;
+}
+
+#content-code::after {
+  content: "_";
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+    from,
+    to {
+      visibility: hidden;
+    }
+    50% {
+      visibility: visible;
+    }
+  }
