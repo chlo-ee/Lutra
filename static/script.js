@@ -83,6 +83,7 @@ class Animator {
         if (this.lightingCycle % 10 !== 0) return
 
         let element = document.getElementById("content-code")
+        if (!element) return
         if (element.innerText.length < this.typeText.length) {
             this.typeTextLetter++
             element.innerText = this.typeText.slice(0, this.typeTextLetter)
@@ -106,13 +107,145 @@ class Animator {
 let animator = new Animator()
 animator.start()
 
+var jwt = null
+var map = null
+let trackers = {}
+
 fetch("static/script.js")
     .then((response) => response.text())
-    .then((text) => animator.typeText = text);
+    .then((text) => animator.typeText = text)
 
 async function performRequestWithFeedback(url) {
     animator.setPercentage(0)
-    let promise = fetch(url)
+    headers = {}
+
+    if (jwt != null) {
+        headers['Authorization'] = "JWT " + jwt
+    }
+
+    let promise = fetch(url, {
+        headers: headers
+    })
     promise.then(() => {animator.setPercentage(100)})
     return promise
+}
+
+async function performPostWithFeedback(url, data) {
+    animator.setPercentage(0)
+    headers = {
+        "Content-Type": "application/json",
+    }
+
+    if (jwt != null) {
+        headers['Authorization'] = "JWT " + jwt
+    }
+
+    let promise = fetch(url, {
+        method: "POST",
+        mode: "cors",
+        cache: "no-cache",
+        credentials: "same-origin",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data)
+    })
+    promise.then(() => {animator.setPercentage(100)})
+    return promise
+}
+
+function toggleTrack(trackerId) {
+    let toggleA = document.getElementById('map-popup-track-toggle-' + trackerId)
+    if (toggleA.classList.contains('inactive')) {
+        performRequestWithFeedback('/api/v1/track/' + trackerId)
+        .then((response) => response.json())
+        .then((json) => {
+            track = Array.from(json, (_) => [_["lng"], _["lat"]])
+            map.addSource('route_' + trackerId, {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'properties': {},
+                    'geometry': {
+                        'type': 'LineString',
+                        'coordinates': track
+                    }
+                }
+            })
+            map.addLayer({
+                'id': 'route_' + trackerId,
+                'type': 'line',
+                'source': 'route_' + trackerId,
+                'layout': {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                'paint': {
+                    'line-color': '#3FB5A0',
+                    'line-width': 4
+                }
+            })
+        })
+    } else {
+        map.removeLayer('route_' + trackerId)
+        map.removeSource('route_' + trackerId)
+    }
+
+    toggleA.classList.toggle('inactive')
+}
+
+function loadTrackers() {
+    performRequestWithFeedback('/api/v1/trackers')
+    .then((response) => response.json())
+    .then((json) => {
+        if (!json['trackers']) return
+        t = json['trackers']
+        lngLats = new maptilersdk.LngLatBounds()
+        for (tracker of t) {
+            trackers[tracker.id] = tracker
+
+            if (tracker['lat'] && tracker['lng']) {
+                let popup = new maptilersdk.Popup({className: 'map-popup'})
+                    .setHTML("<span class='map-popup-name'>" + tracker['name'] + "</span><a class='map-popup-track-toggle inactive' id='map-popup-track-toggle-" + tracker.id + "' onclick='toggleTrack(" + tracker.id + ")'><span class='oi' data-glyph='location' aria-hidden='true'></span></a>")
+                    .setMaxWidth("300px")
+                    .addTo(map);
+                trackers[tracker.id]['marker'] = new maptilersdk.Marker()
+                    .setLngLat([tracker['lng'], tracker['lat']])
+                    .setPopup(popup)
+                    .addTo(map);
+                lngLats.extend(new maptilersdk.LngLat(tracker['lng'], tracker['lat']))
+            }
+        }
+        console.log(lngLats)
+        map.fitBounds(lngLats, {
+            maxZoom: 16
+        })
+    })
+}
+
+
+
+for (element of document.getElementsByClassName("login-input")) {
+    console.log(element)
+    element.addEventListener("keyup", (e) => {
+        if (e.keyCode == 13) {
+            let username = document.getElementById('login-username').value
+            let password = document.getElementById('login-password').value
+            performPostWithFeedback("/api/v1/login", {username: username, password: password})
+            .then((response) => response.json())
+            .then((json) => { jwt = json['access_token']})
+            .then(() => performRequestWithFeedback('/api/v1/user'))
+            .then((response) => response.json())
+            .then((json) => {
+                if (!json['name']) return
+                document.getElementById('user-name').innerText = json['name']
+                document.getElementById('user-section').style.visibility = 'visible'
+                document.getElementById('content-code').style.visibility = 'hidden'
+                document.getElementById('content-login-container').style.visibility = 'hidden'
+                document.getElementById('map').style.visibility = 'visible'
+                loadMap()
+                loadTrackers()
+            })
+        }
+    })
 }

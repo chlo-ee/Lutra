@@ -18,7 +18,7 @@ body {
 
 #content {
     position: absolute;
-    top: 4em;
+    top: 3em;
     bottom: 3em;
     width: 100%;
 }
@@ -31,6 +31,7 @@ body {
     height: 3em;
     position: absolute;
     box-shadow: 0px 0px 20px;
+    z-index: 1;
 }
 #footer {
     background-color: #1E1E1E;
@@ -109,8 +110,44 @@ body {
 }
 
 #content-code::after {
-  content: "_";
-  animation: blink 1s step-end infinite;
+    content: "_";
+    animation: blink 1s step-end infinite;
+}
+
+#map {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.map-popup > div {
+    background: #0A0A0A;
+    border-top-color: #0A0A0A !important;
+}
+
+.map-popup > .maplibregl-popup-tip {
+    border-top-color: #0A0A0A !important;
+    border-bottom-color: #0A0A0A !important;
+    background: inherit;
+}
+
+.map-popup-name {
+    font-size: larger;
+    font-family: Comfortaa;
+}
+
+.maplibregl-popup-close-button {
+    color:#3FB5A0
+}
+
+.map-popup-track-toggle {
+    margin-left: 1em;
+}
+
+.map-popup-track-toggle.inactive {
+    color: white;
 }
 
 @keyframes blink {

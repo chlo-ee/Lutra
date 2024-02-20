@@ -6,21 +6,33 @@
     <link rel="icon" type="image/x-icon" href="static/img/lutra.ico">
     <link rel="stylesheet" href="static/style.css">
     <link rel="stylesheet" href="static/fonts/open-iconic-1.1.1/font/css/open-iconic.css">
-    <script src="static/script.js"></script>
+    <script src="https://cdn.maptiler.com/maptiler-sdk-js/v1.2.0/maptiler-sdk.umd.min.js"></script>
+    <link href="https://cdn.maptiler.com/maptiler-sdk-js/v1.2.0/maptiler-sdk.css" rel="stylesheet" />
 </head>
 <body>
 <div id="head">
     <div id="head-title">
         <span>Lutra</span>
     </div>
-    {% if username %}
-        <div id="user-section">
-            <span class="oi" data-glyph="person" aria-hidden="true"></span>
-            <span>{{ username }}</span>
-        </div>
-    {% endif %}
+    <div id="user-section" style="visibility: hidden">
+        <span class="oi" data-glyph="person" aria-hidden="true"></span>
+        <span id="user-name">{{ username }}</span>
+    </div>
 </div>
 <div id="content">
+    <script>
+        function loadMap() {
+            maptilersdk.config.apiKey = '{{ maptiler_apikey }}';
+            map = new maptilersdk.Map({
+                container: 'map', // container's id or the HTML element to render the map
+                style: maptilersdk.MapStyle.STREETS,
+                center: [0, 0], // starting position [lng, lat]
+                zoom: 2, // starting zoom
+            });
+            map.setStyle(maptilersdk.MapStyle.STREETS.DARK)
+        }
+    </script>
+    <div id="map" style="visibility: hidden"></div>
     <div id="content-login-container">
         <div id="content-login-border">
             <span id="content-login-text">Log.In</span>
@@ -35,5 +47,6 @@
         Lutra v{{ version }}
     </p>
 </div>
+<script src="static/script.js"></script>
 </body>
 </html>
