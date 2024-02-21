@@ -1,3 +1,5 @@
+import bcrypt
+
 from LutraDB.objects.db_object import DbObject, getter, setter
 
 
@@ -34,3 +36,11 @@ class User(DbObject):
     @setter
     def set_password(self, password):
         self.values["Password"] = password
+
+    def hash_and_set_password(self, password):
+        salt = bcrypt.gensalt()
+        hash = bcrypt.hashpw(password.encode('utf-8'), salt)
+        self.set_password(hash)
+
+    def check_password(self, password):
+        return bcrypt.checkpw(password.encode('utf-8'), self.get_password())

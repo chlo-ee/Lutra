@@ -47,6 +47,7 @@ body {
 #user-section {
     margin-top: 1em;
     float: right;
+    cursor: pointer;
 }
 
 #head-title {
@@ -56,7 +57,11 @@ body {
     float:left;
 }
 
-#content-login-container {
+#head-title-img {
+    width: 1em;
+}
+
+.dialog-container {
     position: absolute;
     top: 50%;
     margin: auto;
@@ -64,7 +69,7 @@ body {
     transform: translateY(-50%);
 }
 
-.login-input {
+.text-input {
     margin: 0.5em 1em 0.5em 1em;
     display: block;
     background: #0A0A0A;
@@ -76,15 +81,16 @@ body {
     font-family: inherit;
 }
 
-#content-login-border {
+.dialog-border {
     margin: auto;
+    background: #0A0A0A;
     border: 2px solid #3FB5A0;
     width: fit-content;
     padding: 0;
     border-radius: 2px;
 }
 
-#content-login-text {
+.dialog-title {
     margin: 0 0 0.5em 0;
     padding: 0.5em 0 0.5em 0;
     display: block;
@@ -144,10 +150,40 @@ body {
 
 .map-popup-track-toggle {
     margin-left: 1em;
+    cursor: pointer;
 }
 
 .map-popup-track-toggle.inactive {
     color: white;
+}
+
+#menu {
+    visibility: hidden;
+    position: absolute;
+    right: 1em;
+    top: 3em;
+    z-index: 2;
+    padding: 1em;
+    background-color: #1E1E1E;
+    box-shadow: 0px 0px 10px #3FB5A0;
+}
+
+#menu.visible {
+    visibility: visible;
+}
+
+#menu > ul {
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
+}
+
+#menu > ul > li {
+    cursor: pointer;
+}
+
+#dialog-change-password {
+    visibility: hidden;
 }
 
 @keyframes blink {

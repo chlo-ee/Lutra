@@ -51,15 +51,15 @@ class Animator {
 
     tickLighting() {
         this.boxShadowY = "5px"//Math.round(Math.abs(((this.lightingCycle / 80) % 5) - 2.5) + 2.5) + "px"
-        this.boxShadowS = Math.round(Math.abs((((this.lightingCycle + 10) / 40) % 10) - 5) + 5) + "px"
+        this.boxShadowS = Math.round(Math.abs(((this.lightingCycle % 400) - 200) / 40)) + 5 + "px"
 
         var r = 0x3F
         var g = 0xB5
         var b = 0xA0
 
-        r = Math.round(r * (Math.abs(((this.lightingCycle) % 400) - 200) / 280)) + 40
-        g = Math.round(g * (Math.abs(((this.lightingCycle) % 400) - 200) / 280)) + 40
-        b = Math.round(b * (Math.abs(((this.lightingCycle) % 400) - 200) / 280)) + 40
+        r = Math.round(r * (Math.abs(((this.lightingCycle) % 400) - 200) / 320)) + 60
+        g = Math.round(g * (Math.abs(((this.lightingCycle) % 400) - 200) / 320)) + 60
+        b = Math.round(b * (Math.abs(((this.lightingCycle) % 400) - 200) / 320)) + 60
 
         this.boxShadowC = "#" + this.toDualDigitsHexStr(r) + this.toDualDigitsHexStr(g) + this.toDualDigitsHexStr(b)
     }
@@ -115,18 +115,30 @@ fetch("static/script.js")
     .then((response) => response.text())
     .then((text) => animator.typeText = text)
 
-async function performRequestWithFeedback(url) {
-    animator.setPercentage(0)
+async function performRequestWithFeedback(url, feedback=true) {
+    if (feedback) {
+        animator.setPercentage(0)
+    }
     headers = {}
 
-    if (jwt != null) {
+    if (jwt) {
         headers['Authorization'] = "JWT " + jwt
     }
 
     let promise = fetch(url, {
         headers: headers
     })
-    promise.then(() => {animator.setPercentage(100)})
+    promise.then(() => {
+        if (feedback) {
+            animator.setPercentage(100)
+        }
+    })
+    promise.then((response) => {
+        if (response.status === 401) {
+            jwt = null
+            logout()
+        }
+    })
     return promise
 }
 
@@ -136,7 +148,7 @@ async function performPostWithFeedback(url, data) {
         "Content-Type": "application/json",
     }
 
-    if (jwt != null) {
+    if (jwt) {
         headers['Authorization'] = "JWT " + jwt
     }
 
@@ -145,9 +157,7 @@ async function performPostWithFeedback(url, data) {
         mode: "cors",
         cache: "no-cache",
         credentials: "same-origin",
-        headers: {
-            "Content-Type": "application/json",
-        },
+        headers: headers,
         body: JSON.stringify(data)
     })
     promise.then(() => {animator.setPercentage(100)})
@@ -194,39 +204,68 @@ function toggleTrack(trackerId) {
     toggleA.classList.toggle('inactive')
 }
 
-function loadTrackers() {
-    performRequestWithFeedback('/api/v1/trackers')
+function loadTrackers(fitBounds) {
+    return performRequestWithFeedback('/api/v1/trackers', false)
     .then((response) => response.json())
     .then((json) => {
         if (!json['trackers']) return
         t = json['trackers']
         lngLats = new maptilersdk.LngLatBounds()
-        for (tracker of t) {
-            trackers[tracker.id] = tracker
+        for (let tracker of t) {
+            if (!trackers[tracker.id]) {
+                trackers[tracker.id] = tracker
+            } else {
+                trackers[tracker.id]['lat'] = tracker['lat']
+                trackers[tracker.id]['lng'] = tracker['lng']
+                trackers[tracker.id]['name'] = tracker['name']
+                trackers[tracker.id]['ts'] = tracker['id']
+                tracker = trackers[tracker.id]
+            }
 
             if (tracker['lat'] && tracker['lng']) {
-                let popup = new maptilersdk.Popup({className: 'map-popup'})
-                    .setHTML("<span class='map-popup-name'>" + tracker['name'] + "</span><a class='map-popup-track-toggle inactive' id='map-popup-track-toggle-" + tracker.id + "' onclick='toggleTrack(" + tracker.id + ")'><span class='oi' data-glyph='location' aria-hidden='true'></span></a>")
-                    .setMaxWidth("300px")
-                    .addTo(map);
-                trackers[tracker.id]['marker'] = new maptilersdk.Marker()
-                    .setLngLat([tracker['lng'], tracker['lat']])
-                    .setPopup(popup)
-                    .addTo(map);
+                if (tracker['marker']){
+                    tracker["marker"].setLngLat([tracker['lng'], tracker['lat']])
+                } else {
+                    let popup = new maptilersdk.Popup({
+                        className: 'map-popup',
+                        closeButton: false
+                    })
+                        .setHTML("<span class='map-popup-name'>" + tracker['name'] + "</span><a class='map-popup-track-toggle inactive' id='map-popup-track-toggle-" + tracker.id + "' onclick='toggleTrack(" + tracker.id + ")'><span class='oi' data-glyph='location' aria-hidden='true'></span></a>")
+                        .setMaxWidth("300px")
+                        .addTo(map);
+                    trackers[tracker.id]['marker'] = new maptilersdk.Marker()
+                        .setLngLat([tracker['lng'], tracker['lat']])
+                        .setPopup(popup)
+                        .addTo(map);
+                }
                 lngLats.extend(new maptilersdk.LngLat(tracker['lng'], tracker['lat']))
             }
         }
-        console.log(lngLats)
-        map.fitBounds(lngLats, {
-            maxZoom: 16
-        })
+        if (fitBounds) {
+            map.fitBounds(lngLats, {
+                maxZoom: 16
+            })
+        }
     })
 }
 
+function updateData() {
+    if (jwt) {
+        loadTrackers(false)
+        window.setTimeout(updateData, 10000)
+    }
+}
 
+function logout() {
+    window.location.reload()
+}
 
-for (element of document.getElementsByClassName("login-input")) {
-    console.log(element)
+function changePw() {
+    document.getElementById("dialog-change-password").style.visibility = "visible"
+    document.getElementById("menu").classList.remove("visible")
+}
+
+for (let element of document.getElementsByClassName("login-input")) {
     element.addEventListener("keyup", (e) => {
         if (e.keyCode == 13) {
             let username = document.getElementById('login-username').value
@@ -244,8 +283,42 @@ for (element of document.getElementsByClassName("login-input")) {
                 document.getElementById('content-login-container').style.visibility = 'hidden'
                 document.getElementById('map').style.visibility = 'visible'
                 loadMap()
-                loadTrackers()
+                loadTrackers(true)
+                window.setTimeout(updateData, 10000)
             })
         }
     })
 }
+
+for (let element of document.getElementsByClassName("pw-change-input")) {
+    element.addEventListener("keyup", (e) => {
+        if (e.keyCode == 13) {
+            let oldPassword = document.getElementById('change-old-password').value
+            let newPassword1 = document.getElementById('change-password-1').value
+            let newPassword2 = document.getElementById('change-password-2').value
+            
+            if (newPassword1 !== newPassword2) {
+                alert("Passwords don't match")
+            } else {
+                performPostWithFeedback('/api/v1/changepw', {
+                    'oldpw': oldPassword,
+                    'newpw': newPassword1
+                })
+                .then((response) => response.json())
+                .then((json) => {
+                    if (json['success']) {
+                        alert("Password changed!")
+                    } else {
+                        alert("Wrong password!")
+                    }
+                })
+            }
+
+            document.getElementById('dialog-change-password').style.visibility = 'hidden'
+        }
+    })
+}
+
+document.getElementById("user-section").addEventListener("click", () => {
+    document.getElementById("menu").classList.toggle("visible")
+})
