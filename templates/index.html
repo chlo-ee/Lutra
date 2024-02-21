@@ -12,32 +12,33 @@
 <body>
 <div id="head">
     <div id="head-title">
+        <img src="static/img/svg/logo.svg" id="head-title-img">
         <span>Lutra</span>
     </div>
     <div id="user-section" style="visibility: hidden">
         <span class="oi" data-glyph="person" aria-hidden="true"></span>
-        <span id="user-name">{{ username }}</span>
+        <span id="user-name"></span>
     </div>
 </div>
 <div id="content">
     <script>
         function loadMap() {
-            maptilersdk.config.apiKey = '{{ maptiler_apikey }}';
+            maptilersdk.config.apiKey = '{{ maptiler_apikey }}'
             map = new maptilersdk.Map({
-                container: 'map', // container's id or the HTML element to render the map
+                container: 'map',
                 style: maptilersdk.MapStyle.STREETS,
-                center: [0, 0], // starting position [lng, lat]
-                zoom: 2, // starting zoom
-            });
+                center: [0, 0],
+                zoom: 5
+            })
             map.setStyle(maptilersdk.MapStyle.STREETS.DARK)
         }
     </script>
     <div id="map" style="visibility: hidden"></div>
-    <div id="content-login-container">
-        <div id="content-login-border">
-            <span id="content-login-text">Log.In</span>
-            <input type="text" class="login-input" id="login-username" autofocus />
-            <input type="password" class="login-input" id="login-password" />
+    <div id="content-login-container" class="dialog-container">
+        <div id="content-login-border" class="dialog-border">
+            <span id="content-login-text" class="dialog-title">Log.In</span>
+            <input type="text" class="text-input login-input" id="login-username" autofocus />
+            <input type="password" class="text-input login-input" id="login-password" />
         </div>
     </div>
     <div id="content-code"></div>
@@ -46,6 +47,23 @@
     <p>
         Lutra v{{ version }}
     </p>
+</div>
+<div id="menu">
+    <ul>
+        <li onclick="changePw()">Change Password</li>
+        <li onclick="logout()">Logout</li>
+    </ul>
+</div>
+<div id="dialog-change-password" class="dialog-container">
+    <div class="dialog-border">
+        <span id="content-login-text" class="dialog-title">Change.Password</span>
+        <span>Old Password:</span>
+        <input type="password" class="text-input pw-change-input" id="change-old-password" />
+        <span>New Password:</span>
+        <input type="password" class="text-input pw-change-input" id="change-password-1" />
+        <span>Repeat:</span>
+        <input type="password" class="text-input pw-change-input" id="change-password-2" />
+    </div>
 </div>
 <script src="static/script.js"></script>
 </body>

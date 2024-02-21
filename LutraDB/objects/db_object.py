@@ -62,5 +62,5 @@ class DbObject:
         else:
             for key in self.columns:
                 if key in self.values.keys():
-                    c.execute(f"UPDATE {self._lutraDb_tableName} SET ?=? WHERE ROWID=?", [key, self.values[key], self.id])
+                    c.execute(f"UPDATE {self._lutraDb_tableName} SET {key}=? WHERE ROWID=?", [self.values[key], self.id])
         c.connection.commit()

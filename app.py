@@ -1,6 +1,7 @@
 import threading
+from datetime import timedelta
 
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 import sys
 
 from flask_jwt import JWT, jwt_required, current_identity
@@ -17,8 +18,8 @@ import configparser
 
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'super-secret'
 app.config['JWT_AUTH_URL_RULE'] = '/api/v1/login'
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=1)
 version = "0.0.1"
 
 config = configparser.ConfigParser()
@@ -32,7 +33,7 @@ mqtt_thread.start()
 
 @app.route("/")
 def index():
-    return render_template('index.html', version=version, username="RawBin", maptiler_apikey=config["Maptiler"]["key"])
+    return render_template('index.html', version=version, maptiler_apikey=config["Maptiler"]["key"])
 
 
 @app.route("/api/v1/track/<tracker_id>")
@@ -55,6 +56,7 @@ def track(tracker_id):
         return track
     else:
         return "Not allowed."
+
 
 @app.route('/api/v1/user')
 @jwt_required()
@@ -83,10 +85,33 @@ def trackers():
         tracker_data["trackers"].append(d)
     return tracker_data
 
+
+@app.route('/api/v1/changepw', methods=["POST"])
+@jwt_required()
+def changepw():
+    data = request.json
+    user = current_identity
+
+    if not 'oldpw' in data or not 'newpw' in data:
+        return {
+            "success": False
+        }
+    if not user.check_password(data['oldpw']):
+        return {
+            "success": False
+        }
+    user.hash_and_set_password(data['newpw'])
+    user.save_record()
+    return {
+        "success": True
+    }
+
+
+
 def authenticate(username, password):
     db = database.LutraDB(db_file)
     user = User.get_by_username(db, username)
-    if user is not None and user.get_password() == password:
+    if user is not None and user.check_password(password):
         identity = Identity(user.get_id())
         return identity
 
