@@ -57,9 +57,9 @@ class Animator {
         var g = 0xB5
         var b = 0xA0
 
-        r = Math.round(r * (Math.abs(((this.lightingCycle) % 400) - 200) / 320)) + 60
-        g = Math.round(g * (Math.abs(((this.lightingCycle) % 400) - 200) / 320)) + 60
-        b = Math.round(b * (Math.abs(((this.lightingCycle) % 400) - 200) / 320)) + 60
+        r = Math.round((0.6 * r) * (Math.abs(((this.lightingCycle) % 400) - 200) / 320) + (r - (0.6 * r)))
+        g = Math.round((0.6 * g) * (Math.abs(((this.lightingCycle) % 400) - 200) / 320) + (g - (0.6 * g)))
+        b = Math.round((0.6 * b) * (Math.abs(((this.lightingCycle) % 400) - 200) / 320) + (b - (0.6 * b)))
 
         this.boxShadowC = "#" + this.toDualDigitsHexStr(r) + this.toDualDigitsHexStr(g) + this.toDualDigitsHexStr(b)
     }
@@ -79,8 +79,7 @@ class Animator {
     }
 
     tickTypeText() {
-        this.lightingCycle++
-        if (this.lightingCycle % 10 !== 0) return
+        if (this.lightingCycle % 5 !== 0) return
 
         let element = document.getElementById("content-code")
         if (!element) return
