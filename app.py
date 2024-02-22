@@ -127,7 +127,6 @@ def authenticate(username, password):
 
 def identity(payload):
     db = database.LutraDB(db_file)
-    print(payload)
     user_id = payload['identity']
     user = User(db)
     user.set_id(user_id)

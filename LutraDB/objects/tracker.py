@@ -14,14 +14,10 @@ class Tracker(DbObject):
         c.execute(f"SELECT {','.join(t.columns)} FROM Trackers")
         rows = c.fetchall()
         trackers = []
-        print(rows)
         for row in rows:
-            print(row)
             tracker = Tracker(db)
             for n in range(len(t.columns)):
-                print(row[n])
                 tracker.values[tracker.columns[n]] = row[n]
-                print(tracker.values)
             tracker.loaded = True
             tracker.is_new = False
             tracker.id = tracker.values["ROWID"]
@@ -53,7 +49,6 @@ class Tracker(DbObject):
 
     @getter
     def get_ttn_identifier(self):
-        print(self.values)
         return self.values["TtnIdentifier"]
 
     @setter
