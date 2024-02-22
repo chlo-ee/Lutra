@@ -75,7 +75,7 @@ def assigntracker():
     if user is None:
         print("Username does not exist!")
         return
-    for ut in UserTracker.get_user_trackers_by_tracker(tracker):
+    for ut in UserTracker.get_user_trackers_by_tracker(db, tracker):
         if ut.get_user().get_id() == user.get_id():
             print("Tracker is already assigned to this user.")
             return
