@@ -125,7 +125,7 @@ Commands:
             deluser()
         elif command == 'deltracker':
             deltracker()
-        elif command == 'addigntracker':
+        elif command == 'assigntracker':
             assigntracker()
         elif command == 'unassigntracker':
             unassigntracker()
