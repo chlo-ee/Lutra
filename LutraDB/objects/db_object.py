@@ -49,13 +49,13 @@ class DbObject:
             self.loaded = True
             self.flushed = True
             self.values[self.columns[n]] = row[n]
+            if self.columns[n] == "ROWID":
+                self.id = row[n]
 
     def save_record(self):
         c = self._lutraDb_db.connection.cursor()
         if self.is_new:
             statement = f"INSERT INTO {self._lutraDb_tableName} ({','.join(self.values.keys())}) VALUES ({','.join(['?'] * len(self.values))})"
-            print(statement)
-            print(list(self.values.values()))
             c.execute(statement, list(self.values.values()))
             self.id = c.lastrowid
 
@@ -64,3 +64,9 @@ class DbObject:
                 if key in self.values.keys():
                     c.execute(f"UPDATE {self._lutraDb_tableName} SET {key}=? WHERE ROWID=?", [self.values[key], self.id])
         c.connection.commit()
+
+    def delete_record(self):
+        if not self.is_new:
+            c = self._lutraDb_db.connection.cursor()
+            c.execute(f"DELETE FROM {self._lutraDb_tableName} WHERE ROWID=?", [self.id])
+            c.connection.commit()

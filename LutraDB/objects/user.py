@@ -19,6 +19,9 @@ class User(DbObject):
             return None
         for n in range(len(user.columns)):
             user.values[user.columns[n]] = row[n]
+        user.loaded = True
+        user.is_new = False
+        user.id = user.values["ROWID"]
         return user
 
     @getter

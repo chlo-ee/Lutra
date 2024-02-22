@@ -61,6 +61,10 @@ body {
     width: 1em;
 }
 
+.maplibregl-ctrl-attrib {
+    margin: 1em !important;
+}
+
 .dialog-container {
     position: absolute;
     top: 50%;
@@ -100,6 +104,14 @@ body {
     background-color: #3FB5A0;
     color: #0A0A0A;
     user-select: none;
+}
+
+.dialog-close {
+    position: absolute;
+    color: #0A0A0A;
+    font-weight: 900;
+    top: 5px;
+    margin-left: 5px;
 }
 
 #content-code {

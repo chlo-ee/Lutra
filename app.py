@@ -107,7 +107,6 @@ def changepw():
     }
 
 
-
 def authenticate(username, password):
     db = database.LutraDB(db_file)
     user = User.get_by_username(db, username)

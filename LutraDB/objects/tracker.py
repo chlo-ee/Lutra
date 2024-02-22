@@ -23,7 +23,8 @@ class Tracker(DbObject):
                 tracker.values[tracker.columns[n]] = row[n]
                 print(tracker.values)
             tracker.loaded = True
-            tracker.flushed = True
+            tracker.is_new = False
+            tracker.id = tracker.values["ROWID"]
             trackers.append(tracker)
         return trackers
 
@@ -38,7 +39,8 @@ class Tracker(DbObject):
         for n in range(len(tracker.columns)):
             tracker.values[tracker.columns[n]] = row[n]
         tracker.loaded = True
-        tracker.flushed = True
+        tracker.is_new = False
+        tracker.id = tracker.values["ROWID"]
         return tracker
 
     @getter

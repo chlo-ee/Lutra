@@ -20,6 +20,9 @@ class Position(DbObject):
             return None
         for n in range(len(position.columns)):
             position.values[position.columns[n]] = row[n]
+        position.loaded = True
+        position.is_new = False
+        position.id = position.values["ROWID"]
         return position
 
     @staticmethod
@@ -34,6 +37,27 @@ class Position(DbObject):
             position = Position(db)
             for n in range(len(position.columns)):
                 position.values[position.columns[n]] = row[n]
+            position.loaded = True
+            position.is_new = False
+            position.id = position.values["ROWID"]
+            positions.append(position)
+        return positions
+
+    @staticmethod
+    def get_all_for_tracker(db, tracker: Tracker):
+        p = Position(db)
+        c = p._lutraDb_db.connection.cursor()
+        positions = []
+        c.execute(
+            f"SELECT {','.join(p.columns)} FROM Positions WHERE TrackerID=? ORDER BY Timestamp",
+            [tracker.get_id(), time.time() - (24 * 60 * 60)])
+        for row in c.fetchall():
+            position = Position(db)
+            for n in range(len(position.columns)):
+                position.values[position.columns[n]] = row[n]
+            position.loaded = True
+            position.is_new = False
+            position.id = position.values["ROWID"]
             positions.append(position)
         return positions
 

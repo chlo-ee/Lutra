@@ -21,6 +21,27 @@ class UserTracker(DbObject):
             user_tracker = UserTracker(db)
             for n in range(len(user_tracker.columns)):
                 user_tracker.values[user_tracker.columns[n]] = row[n]
+            user_tracker.loaded = True
+            user_tracker.is_new = False
+            user_tracker.id = user_tracker.values["ROWID"]
+            user_trackers.append(user_tracker)
+        return user_trackers
+
+    @staticmethod
+    def get_user_trackers_by_tracker(db, tracker: Tracker):
+        ut = UserTracker(db)
+        c = ut._lutraDb_db.connection.cursor()
+        c.execute(f"SELECT {','.join(ut.columns)} FROM UserTrackers WHERE TrackerID=?", [tracker.get_id()])
+        user_trackers = []
+        for row in c.fetchall():
+            if row is None:
+                return None
+            user_tracker = UserTracker(db)
+            for n in range(len(user_tracker.columns)):
+                user_tracker.values[user_tracker.columns[n]] = row[n]
+            user_tracker.loaded = True
+            user_tracker.is_new = False
+            user_tracker.id = user_tracker.values["ROWID"]
             user_trackers.append(user_tracker)
         return user_trackers
 
@@ -37,6 +58,9 @@ class UserTracker(DbObject):
             tracker = Tracker(db)
             for n in range(len(tracker.columns)):
                 tracker.values[tracker.columns[n]] = row[n]
+            tracker.loaded = True
+            tracker.is_new = False
+            tracker.id = tracker.values["ROWID"]
             trackers.append(tracker)
         return trackers
 
