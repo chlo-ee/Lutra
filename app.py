@@ -6,11 +6,9 @@ from datetime import timezone
 from flask import Flask, render_template, request, jsonify
 import sys
 
-from flask_jwt_extended import create_access_token
 from flask_jwt_extended import current_user
 from flask_jwt_extended import create_access_token
 from flask_jwt_extended import get_jwt
-from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
 from flask_jwt_extended import JWTManager
 from flask_jwt_extended import set_access_cookies
@@ -21,7 +19,6 @@ from LutraDB.objects.position import Position
 from LutraDB.objects.tracker import Tracker
 from LutraDB.objects.user import User
 from LutraDB.objects.user_tracker import UserTracker
-from identity import Identity
 from mqtt import LutraMQTT
 import configparser
 
@@ -100,7 +97,7 @@ def track(tracker_id):
 
 @app.route('/api/v1/user')
 @jwt_required()
-def user():
+def userdata():
     return {
         'name': current_user.get_name()
     }
@@ -111,8 +108,7 @@ def user():
 def trackers():
     db = database.LutraDB(db_file)
     tracker_data = {"trackers": []}
-    trackers = UserTracker.get_trackers_by_user(db, current_user)
-    for tracker in trackers:
+    for tracker in UserTracker.get_trackers_by_user(db, current_user):
         position = Position.get_last_by_tracker(db, tracker)
         d = {
             "name": tracker.get_name(),
@@ -132,7 +128,7 @@ def change_pw():
     data = request.json
     user = current_user
 
-    if not 'oldpw' in data or not 'newpw' in data:
+    if 'oldpw' not in data or 'newpw' not in data:
         return {
             "success": False
         }
