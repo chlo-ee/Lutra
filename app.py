@@ -65,6 +65,7 @@ def refresh_expiring_jwts(response):
         # Case where there is not a valid JWT. Just return the original response
         return response
 
+
 @app.route("/api/v1/track/<tracker_id>")
 @jwt_required()
 def track(tracker_id):

@@ -124,7 +124,7 @@ fetch("static/script.js")
     .then((response) => response.text())
     .then((text) => animator.typeText = text)
 
-async function performRequestWithFeedback(url, feedback=true) {
+async function performGetRequestWithFeedback(url, feedback=true, reload_on_401=true) {
     if (feedback) {
         animator.setPercentage(0)
     }
@@ -136,7 +136,7 @@ async function performRequestWithFeedback(url, feedback=true) {
         }
     })
     promise.then((response) => {
-        if (response.status === 401) {
+        if (reload_on_401 && response.status === 401) {
             jwt = null
             logout()
         }
@@ -165,7 +165,7 @@ async function performPostWithFeedback(url, data) {
 function toggleTrack(trackerId) {
     let toggleA = document.getElementById('map-popup-track-toggle-' + trackerId)
     if (toggleA.classList.contains('inactive')) {
-        performRequestWithFeedback(getApiRoute('track', [trackerId]))
+        performGetRequestWithFeedback(getApiRoute('track', [trackerId]))
         .then((response) => response.json())
         .then((json) => {
             track = Array.from(json, (_) => [_["lng"], _["lat"]])
@@ -203,7 +203,7 @@ function toggleTrack(trackerId) {
 }
 
 function loadTrackers(fitBounds) {
-    return performRequestWithFeedback(getApiRoute('trackers'), false)
+    return performGetRequestWithFeedback(getApiRoute('trackers'), false)
     .then((response) => response.json())
     .then((json) => {
         if (!json['trackers']) return
@@ -269,6 +269,22 @@ function changePw() {
     document.getElementById("menu").classList.remove("visible")
 }
 
+function checkLogin() {
+    performGetRequestWithFeedback(getApiRoute('user'), true, false)
+    .then((response) => response.json())
+    .then((json) => {
+        if (!json['name']) return
+        document.getElementById('user-name').innerText = json['name']
+        document.getElementById('user-section').style.visibility = 'visible'
+        document.getElementById('content-code').style.visibility = 'hidden'
+        document.getElementById('content-login-container').style.visibility = 'hidden'
+        document.getElementById('map').style.visibility = 'visible'
+        loadMap()
+        loadTrackers(true)
+        window.setTimeout(updateData, 10000)
+    })
+}
+
 for (let element of document.getElementsByClassName("login-input")) {
     element.addEventListener("keyup", (e) => {
         if (e.keyCode == 13) {
@@ -278,19 +294,7 @@ for (let element of document.getElementsByClassName("login-input")) {
             .then((response) => response.json())
             .then((json) => {
                 if(json['success']) {
-                    performRequestWithFeedback(getApiRoute('user'))
-                    .then((response) => response.json())
-                    .then((json) => {
-                        if (!json['name']) return
-                        document.getElementById('user-name').innerText = json['name']
-                        document.getElementById('user-section').style.visibility = 'visible'
-                        document.getElementById('content-code').style.visibility = 'hidden'
-                        document.getElementById('content-login-container').style.visibility = 'hidden'
-                        document.getElementById('map').style.visibility = 'visible'
-                        loadMap()
-                        loadTrackers(true)
-                        window.setTimeout(updateData, 10000)
-                    })
+                    checkLogin()
                 }
             })
         }
@@ -329,3 +333,5 @@ for (let element of document.getElementsByClassName("pw-change-input")) {
 document.getElementById("user-section").addEventListener("click", () => {
     document.getElementById("menu").classList.toggle("visible")
 })
+
+checkLogin()
