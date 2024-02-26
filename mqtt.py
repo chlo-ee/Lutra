@@ -34,7 +34,7 @@ class LutraMQTT(mqtt_client.Client):
         trackers = Tracker.get_all(self.db)
         for tracker in trackers:
             topic = f"v3/{self.username}/devices/{tracker.get_ttn_identifier()}/up"
-            print(f"Subscribing to {topic}")
+            print(f"[MQTT] Subscribing to {topic}")
             self.subscribe(topic)
 
     @staticmethod

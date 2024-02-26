@@ -106,7 +106,17 @@ class Animator {
 let animator = new Animator()
 animator.start()
 
-var jwt = null
+let apiBase = '/api/v1/'
+function getApiRoute(functionName, args=null) {
+    var route = apiBase + functionName
+    if (args) {
+        for (let arg of args) {
+            route += '/' + arg
+        }
+    }
+    return route
+}
+
 var map = null
 let trackers = {}
 
@@ -118,15 +128,8 @@ async function performRequestWithFeedback(url, feedback=true) {
     if (feedback) {
         animator.setPercentage(0)
     }
-    headers = {}
 
-    if (jwt) {
-        headers['Authorization'] = "JWT " + jwt
-    }
-
-    let promise = fetch(url, {
-        headers: headers
-    })
+    let promise = fetch(url)
     promise.then(() => {
         if (feedback) {
             animator.setPercentage(100)
@@ -147,10 +150,6 @@ async function performPostWithFeedback(url, data) {
         "Content-Type": "application/json",
     }
 
-    if (jwt) {
-        headers['Authorization'] = "JWT " + jwt
-    }
-
     let promise = fetch(url, {
         method: "POST",
         mode: "cors",
@@ -166,7 +165,7 @@ async function performPostWithFeedback(url, data) {
 function toggleTrack(trackerId) {
     let toggleA = document.getElementById('map-popup-track-toggle-' + trackerId)
     if (toggleA.classList.contains('inactive')) {
-        performRequestWithFeedback('/api/v1/track/' + trackerId)
+        performRequestWithFeedback(getApiRoute('track', [trackerId]))
         .then((response) => response.json())
         .then((json) => {
             track = Array.from(json, (_) => [_["lng"], _["lat"]])
@@ -204,7 +203,7 @@ function toggleTrack(trackerId) {
 }
 
 function loadTrackers(fitBounds) {
-    return performRequestWithFeedback('/api/v1/trackers', false)
+    return performRequestWithFeedback(getApiRoute('trackers'), false)
     .then((response) => response.json())
     .then((json) => {
         if (!json['trackers']) return
@@ -249,14 +248,20 @@ function loadTrackers(fitBounds) {
 }
 
 function updateData() {
-    if (jwt) {
-        loadTrackers(false)
-        window.setTimeout(updateData, 10000)
-    }
+    loadTrackers(false)
+    window.setTimeout(updateData, 10000)
 }
 
 function logout() {
-    window.location.reload()
+    performPostWithFeedback(getApiRoute("logout"), {})
+    .then((response) => response.json())
+    .then((json) => {
+        if (json["success"]) {
+            window.location.reload()
+        } else {
+            console.error("Failed to log out... How?!")
+        }
+    })
 }
 
 function changePw() {
@@ -269,21 +274,24 @@ for (let element of document.getElementsByClassName("login-input")) {
         if (e.keyCode == 13) {
             let username = document.getElementById('login-username').value
             let password = document.getElementById('login-password').value
-            performPostWithFeedback("/api/v1/login", {username: username, password: password})
-            .then((response) => response.json())
-            .then((json) => { jwt = json['access_token']})
-            .then(() => performRequestWithFeedback('/api/v1/user'))
+            performPostWithFeedback(getApiRoute("login"), {username: username, password: password})
             .then((response) => response.json())
             .then((json) => {
-                if (!json['name']) return
-                document.getElementById('user-name').innerText = json['name']
-                document.getElementById('user-section').style.visibility = 'visible'
-                document.getElementById('content-code').style.visibility = 'hidden'
-                document.getElementById('content-login-container').style.visibility = 'hidden'
-                document.getElementById('map').style.visibility = 'visible'
-                loadMap()
-                loadTrackers(true)
-                window.setTimeout(updateData, 10000)
+                if(json['success']) {
+                    performRequestWithFeedback(getApiRoute('user'))
+                    .then((response) => response.json())
+                    .then((json) => {
+                        if (!json['name']) return
+                        document.getElementById('user-name').innerText = json['name']
+                        document.getElementById('user-section').style.visibility = 'visible'
+                        document.getElementById('content-code').style.visibility = 'hidden'
+                        document.getElementById('content-login-container').style.visibility = 'hidden'
+                        document.getElementById('map').style.visibility = 'visible'
+                        loadMap()
+                        loadTrackers(true)
+                        window.setTimeout(updateData, 10000)
+                    })
+                }
             })
         }
     })
@@ -299,7 +307,7 @@ for (let element of document.getElementsByClassName("pw-change-input")) {
             if (newPassword1 !== newPassword2) {
                 alert("Passwords don't match")
             } else {
-                performPostWithFeedback('/api/v1/changepw', {
+                performPostWithFeedback(getApiRoute('change_pw'), {
                     'oldpw': oldPassword,
                     'newpw': newPassword1
                 })

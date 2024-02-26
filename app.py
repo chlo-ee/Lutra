@@ -1,10 +1,20 @@
 import threading
 from datetime import timedelta
+from datetime import datetime
+from datetime import timezone
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 import sys
 
-from flask_jwt import JWT, jwt_required, current_identity
+from flask_jwt_extended import create_access_token
+from flask_jwt_extended import current_user
+from flask_jwt_extended import create_access_token
+from flask_jwt_extended import get_jwt
+from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import jwt_required
+from flask_jwt_extended import JWTManager
+from flask_jwt_extended import set_access_cookies
+from flask_jwt_extended import unset_jwt_cookies
 
 from LutraDB import database
 from LutraDB.objects.position import Position
@@ -16,25 +26,44 @@ from mqtt import LutraMQTT
 import configparser
 
 
-
-app = Flask(__name__)
-app.config['JWT_AUTH_URL_RULE'] = '/api/v1/login'
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=1)
 version = "0.0.1"
 
 config = configparser.ConfigParser()
 config.read('config.ini')
 db_file = config['DB']['sqlite_file']
-app.config['SECRET_KEY'] = config['App']['key']
+
+app = Flask(__name__)
+app.config['JWT_AUTH_URL_RULE'] = '/api/v1/login'
+app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
+app.config['JWT_SECRET_KEY'] = config['App']['key']
+app.config["JWT_COOKIE_SECURE"] = config['App']['production']
+
 mqtt = LutraMQTT(db_file, config['MQTT']['User'], config['MQTT']['Password'], config['MQTT']['Server'], int(config['MQTT']['Port']))
 mqtt_thread = threading.Thread(target=mqtt.lutra_connect, args=[])
 mqtt_thread.start()
+
+jwt = JWTManager(app)
 
 
 @app.route("/")
 def index():
     return render_template('index.html', version=version, maptiler_apikey=config["Maptiler"]["key"])
 
+
+@app.after_request
+def refresh_expiring_jwts(response):
+    try:
+        exp_timestamp = get_jwt()["exp"]
+        now = datetime.now(timezone.utc)
+        target_timestamp = datetime.timestamp(now + timedelta(minutes=30))
+        if target_timestamp > exp_timestamp:
+            access_token = create_access_token(identity=current_user)
+            set_access_cookies(response, access_token)
+        return response
+    except (RuntimeError, KeyError):
+        # Case where there is not a valid JWT. Just return the original response
+        return response
 
 @app.route("/api/v1/track/<tracker_id>")
 @jwt_required()
@@ -43,7 +72,7 @@ def track(tracker_id):
     tracker = Tracker(db)
     tracker.set_id(tracker_id)
     tracker.load_record()
-    if UserTracker.check_authorization(db, current_identity, tracker):
+    if UserTracker.check_authorization(db, current_user, tracker):
         track = []
         positions = Position.get_last_day_for_tracker(db, tracker)
         last_added = False
@@ -72,7 +101,7 @@ def track(tracker_id):
 @jwt_required()
 def user():
     return {
-        'name': current_identity.get_name()
+        'name': current_user.get_name()
     }
 
 
@@ -81,7 +110,7 @@ def user():
 def trackers():
     db = database.LutraDB(db_file)
     tracker_data = {"trackers": []}
-    trackers = UserTracker.get_trackers_by_user(db, current_identity)
+    trackers = UserTracker.get_trackers_by_user(db, current_user)
     for tracker in trackers:
         position = Position.get_last_by_tracker(db, tracker)
         d = {
@@ -96,11 +125,11 @@ def trackers():
     return tracker_data
 
 
-@app.route('/api/v1/changepw', methods=["POST"])
+@app.route('/api/v1/change_pw', methods=["POST"])
 @jwt_required()
-def changepw():
+def change_pw():
     data = request.json
-    user = current_identity
+    user = current_user
 
     if not 'oldpw' in data or not 'newpw' in data:
         return {
@@ -117,24 +146,43 @@ def changepw():
     }
 
 
-def authenticate(username, password):
+@app.route("/api/v1/login", methods=["POST"])
+def authenticate():
+    username = request.json.get("username")
+    password = request.json.get("password")
+
+    if username is None or password is None:
+        return {'success': False}, 401
     db = database.LutraDB(db_file)
     user = User.get_by_username(db, username)
-    if user is not None and user.check_password(password):
-        identity = Identity(user.get_id())
-        return identity
+    if user.check_password(password):
+        response = jsonify({'success': True})
+        access_token = create_access_token(identity=user)
+        set_access_cookies(response, access_token)
+        return response
+    return {'success': False}, 401
 
 
-def identity(payload):
+@app.route("/api/v1/logout", methods=["POST"])
+def logout():
+    response = jsonify({"success": True})
+    unset_jwt_cookies(response)
+    return response
+
+
+@jwt.user_identity_loader
+def user_identity_lookup(user):
+    return user.get_id()
+
+
+@jwt.user_lookup_loader
+def user_lookup_callback(_jwt_header, jwt_data):
     db = database.LutraDB(db_file)
-    user_id = payload['identity']
+    user_id = jwt_data["sub"]
     user = User(db)
     user.set_id(user_id)
     user.load_record()
     return user
-
-
-jwt = JWT(app, authenticate, identity)
 
 
 if __name__ == '__main__':
