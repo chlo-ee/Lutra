@@ -227,7 +227,7 @@ function loadTrackers(fitBounds) {
                 trackers[tracker.id]['lat'] = tracker['lat']
                 trackers[tracker.id]['lng'] = tracker['lng']
                 trackers[tracker.id]['name'] = tracker['name']
-                trackers[tracker.id]['ts'] = tracker['id']
+                trackers[tracker.id]['ts'] = tracker['ts']
                 tracker = trackers[tracker.id]
                 let track_source = map.getSource("route_" + tracker.id)
                 if (track_source) {
@@ -236,20 +236,35 @@ function loadTrackers(fitBounds) {
             }
 
             if (tracker['lat'] && tracker['lng']) {
+                let source = map.getSource('route_' + tracker.id)
+                let route_active = !!source
+                var toggle_classes = 'map-popup-track-toggle'
+                if (!route_active) {
+                    toggle_classes += " inactive"
+                }
+
+                let date = new Date(tracker['ts'] * 1000)
+                let display_time = date.toLocaleTimeString()
+                if (date.getDate() != new Date().getDate()) {
+                    display_time = date.toLocaleDateString() + " " + display_time
+                }
+                let popupHtml = "<span class='map-popup-name'>" + tracker['name'] + "</span><a class='" + toggle_classes + "' id='map-popup-track-toggle-" + tracker.id + "' onclick='toggleTrack(" + tracker.id + ")'><span class='oi' data-glyph='location' aria-hidden='true'></span></a><br><span class='map-popup-ts'>" + display_time + "</span>"
                 if (tracker['marker']){
                     tracker["marker"].setLngLat([tracker['lng'], tracker['lat']])
+                    tracker["popup"].setHTML(popupHtml)
                 } else {
                     let popup = new maptilersdk.Popup({
                         className: 'map-popup',
                         closeButton: false
                     })
-                        .setHTML("<span class='map-popup-name'>" + tracker['name'] + "</span><a class='map-popup-track-toggle inactive' id='map-popup-track-toggle-" + tracker.id + "' onclick='toggleTrack(" + tracker.id + ")'><span class='oi' data-glyph='location' aria-hidden='true'></span></a>")
+                        .setHTML(popupHtml)
                         .setMaxWidth("300px")
                         .addTo(map);
                     trackers[tracker.id]['marker'] = new maptilersdk.Marker()
                         .setLngLat([tracker['lng'], tracker['lat']])
                         .setPopup(popup)
                         .addTo(map);
+                    trackers[tracker.id]['popup'] = popup
                 }
                 lngLats.extend(new maptilersdk.LngLat(tracker['lng'], tracker['lat']))
             }
