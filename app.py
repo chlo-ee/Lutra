@@ -71,12 +71,12 @@ def track(tracker_id):
     tracker.set_id(tracker_id)
     tracker.load_record()
     if UserTracker.check_authorization(db, current_user, tracker):
-        track = []
+        t = []
         positions = Position.get_last_day_for_tracker(db, tracker)
         last_added = False
         for position in positions:
-            if len(track) == 0 or abs(track[-1]["lat"] - position.get_latitude()) > 0.0005 or abs(track[-1]["lng"] - position.get_longitude()) > 0.0005:
-                track.append({
+            if len(t) == 0 or abs(t[-1]["lat"] - position.get_latitude()) > 0.0005 or abs(t[-1]["lng"] - position.get_longitude()) > 0.0005:
+                t.append({
                     "lat": position.get_latitude(),
                     "lng": position.get_longitude(),
                     "ts": position.get_timestamp()
@@ -85,12 +85,12 @@ def track(tracker_id):
             else:
                 last_added = False
         if not last_added:
-            track.append({
+            t.append({
                 "lat": positions[-1].get_latitude(),
                 "lng": positions[-1].get_longitude(),
                 "ts": positions[-1].get_timestamp()
             })
-        return track
+        return t
     else:
         return "Not allowed."
 

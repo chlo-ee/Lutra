@@ -162,24 +162,35 @@ async function performPostWithFeedback(url, data) {
     return promise
 }
 
-function toggleTrack(trackerId) {
-    let toggleA = document.getElementById('map-popup-track-toggle-' + trackerId)
-    if (toggleA.classList.contains('inactive')) {
-        performGetRequestWithFeedback(getApiRoute('track', [trackerId]))
+function updateTrack(trackerId) {
+    return performGetRequestWithFeedback(getApiRoute('track', [trackerId]))
         .then((response) => response.json())
         .then((json) => {
             track = Array.from(json, (_) => [_["lng"], _["lat"]])
-            map.addSource('route_' + trackerId, {
-                'type': 'geojson',
-                'data': {
-                    'type': 'Feature',
-                    'properties': {},
-                    'geometry': {
-                        'type': 'LineString',
-                        'coordinates': track
-                    }
+            let sourceData = {
+                'type': 'Feature',
+                'properties': {},
+                'geometry': {
+                    'type': 'LineString',
+                    'coordinates': track
                 }
-            })
+            }
+            var source = map.getSource('route_' + trackerId)
+            if (source) {
+                source.setData(sourceData)
+            } else {
+                map.addSource('route_' + trackerId, {
+                    'type': 'geojson',
+                    'data': sourceData
+                })
+            }
+        })
+}
+
+function toggleTrack(trackerId) {
+    let toggleA = document.getElementById('map-popup-track-toggle-' + trackerId)
+    if (toggleA.classList.contains('inactive')) {
+        updateTrack(trackerId).then(() => {
             map.addLayer({
                 'id': 'route_' + trackerId,
                 'type': 'line',
@@ -218,6 +229,10 @@ function loadTrackers(fitBounds) {
                 trackers[tracker.id]['name'] = tracker['name']
                 trackers[tracker.id]['ts'] = tracker['id']
                 tracker = trackers[tracker.id]
+                let track_source = map.getSource("route_" + tracker.id)
+                if (track_source) {
+                    updateTrack(tracker.id)
+                }
             }
 
             if (tracker['lat'] && tracker['lng']) {
