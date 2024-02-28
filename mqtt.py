@@ -40,7 +40,6 @@ class LutraMQTT(mqtt_client.Client):
     @staticmethod
     def lutra_on_message(client, userdata, msg):
         decoded_payload = msg.payload.decode()
-        print(f"Received '{decoded_payload}' from '{msg.topic}' topic")
         parsed = json.loads(decoded_payload)
         if 'end_device_ids' not in parsed:
             return
@@ -51,17 +50,29 @@ class LutraMQTT(mqtt_client.Client):
             return
         if 'frm_payload' not in parsed['uplink_message']:
             return
+
+        tracker = Tracker.get_by_ttn_identifier(client.db, dev_id)
+        if not tracker:
+            return
         payload = parsed['uplink_message']['frm_payload']
         decoded = base64.b64decode(payload)
-        lat = (decoded[0] + (decoded[1] << 8) + (decoded[2] << 16) + (decoded[3] << 24)) / 10000
-        lng = (decoded[4] + (decoded[5] << 8) + (decoded[6] << 16) + (decoded[7] << 24)) / 10000
-        tracker = Tracker.get_by_ttn_identifier(client.db, dev_id)
-        position = Position(client.db)
-        position.set_tracker_id(tracker.get_id())
-        position.set_timestamp(time.time())
-        position.set_latitude(lat)
-        position.set_longitude(lng)
-        position.save_record()
+        if len(decoded) == 8:
+            lat = (decoded[0] + (decoded[1] << 8) + (decoded[2] << 16) + (decoded[3] << 24)) / 10000
+            lng = (decoded[4] + (decoded[5] << 8) + (decoded[6] << 16) + (decoded[7] << 24)) / 10000
+            print(f"[MQTT] Received ({lat},{lng}) from {dev_id}")
+            position = Position(client.db)
+            position.set_tracker_id(tracker.get_id())
+            position.set_timestamp(time.time())
+            position.set_latitude(lat)
+            position.set_longitude(lng)
+            position.save_record()
+        elif len(decoded) == 2:
+            voltage = decoded[0] + (decoded[1] << 8)
+            print(f"[MQTT] Received Bat={voltage} from {dev_id}")
+            tracker.set_voltage(voltage)
+
+        tracker.set_last_seen(time.time())
+        tracker.save_record()
 
     @staticmethod
     def lutra_on_connect(client, userdata, flags, rc):

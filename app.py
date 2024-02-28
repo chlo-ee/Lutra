@@ -2,6 +2,7 @@ import threading
 from datetime import timedelta
 from datetime import datetime
 from datetime import timezone
+from secrets import token_bytes
 
 from flask import Flask, render_template, request, jsonify
 import sys
@@ -15,6 +16,7 @@ from flask_jwt_extended import set_access_cookies
 from flask_jwt_extended import unset_jwt_cookies
 
 from LutraDB import database
+from LutraDB.objects.lutra_meta import LutraMeta
 from LutraDB.objects.position import Position
 from LutraDB.objects.tracker import Tracker
 from LutraDB.objects.user import User
@@ -23,17 +25,36 @@ from mqtt import LutraMQTT
 import configparser
 
 
-version = "0.0.1"
+version = "0.1.0"
 
 config = configparser.ConfigParser()
 config.read('config.ini')
 db_file = config['DB']['sqlite_file']
+db = database.LutraDB(db_file)
+db.check_upgrades()
+
+
+def init_jwt_secret():
+    key = token_bytes(64)
+    db = database.LutraDB(db_file)
+    meta_object = LutraMeta(db)
+    meta_object.set_key("JWT_SECRET")
+    meta_object.set_value(key)
+    meta_object.save_record()
+    return key
+
+
+jwt_secret = ""
+if "JWT_SECRET" not in db.metadata:
+    jwt_secret = init_jwt_secret()
+else:
+    jwt_secret = db.metadata["JWT_SECRET"]
 
 app = Flask(__name__)
 app.config['JWT_AUTH_URL_RULE'] = '/api/v1/login'
 app.config["JWT_TOKEN_LOCATION"] = ["cookies"]
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
-app.config['JWT_SECRET_KEY'] = config['App']['key']
+app.config['JWT_SECRET_KEY'] = jwt_secret
 app.config["JWT_COOKIE_SECURE"] = config['App']['production']
 
 mqtt = LutraMQTT(db_file, config['MQTT']['User'], config['MQTT']['Password'], config['MQTT']['Server'], int(config['MQTT']['Port']))

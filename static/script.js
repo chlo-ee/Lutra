@@ -124,7 +124,7 @@ fetch("static/script.js")
     .then((response) => response.text())
     .then((text) => animator.typeText = text)
 
-async function performGetRequestWithFeedback(url, feedback=true, reload_on_401=true) {
+async function performGetRequestWithFeedback(url, feedback=true, reloadOnDenied=true) {
     if (feedback) {
         animator.setPercentage(0)
     }
@@ -136,7 +136,7 @@ async function performGetRequestWithFeedback(url, feedback=true, reload_on_401=t
         }
     })
     promise.then((response) => {
-        if (reload_on_401 && response.status === 401) {
+        if (reloadOnDenied && response.status >= 400 && response.status < 500) {
             jwt = null
             logout()
         }
@@ -162,8 +162,8 @@ async function performPostWithFeedback(url, data) {
     return promise
 }
 
-function updateTrack(trackerId) {
-    return performGetRequestWithFeedback(getApiRoute('track', [trackerId]))
+async function updateTrack(trackerId) {
+    return performGetRequestWithFeedback(getApiRoute('track', [trackerId]), false)
         .then((response) => response.json())
         .then((json) => {
             track = Array.from(json, (_) => [_["lng"], _["lat"]])
@@ -213,7 +213,7 @@ function toggleTrack(trackerId) {
     toggleA.classList.toggle('inactive')
 }
 
-function loadTrackers(fitBounds) {
+async function loadTrackers(fitBounds) {
     return performGetRequestWithFeedback(getApiRoute('trackers'), false)
     .then((response) => response.json())
     .then((json) => {
@@ -229,26 +229,26 @@ function loadTrackers(fitBounds) {
                 trackers[tracker.id]['name'] = tracker['name']
                 trackers[tracker.id]['ts'] = tracker['ts']
                 tracker = trackers[tracker.id]
-                let track_source = map.getSource("route_" + tracker.id)
-                if (track_source) {
+                let trackSource = map.getSource("route_" + tracker.id)
+                if (trackSource) {
                     updateTrack(tracker.id)
                 }
             }
 
             if (tracker['lat'] && tracker['lng']) {
                 let source = map.getSource('route_' + tracker.id)
-                let route_active = !!source
-                var toggle_classes = 'map-popup-track-toggle'
-                if (!route_active) {
-                    toggle_classes += " inactive"
+                let routeActive = !!source
+                var toggleClasses = 'map-popup-track-toggle'
+                if (!routeActive) {
+                    toggleClasses += " inactive"
                 }
 
                 let date = new Date(tracker['ts'] * 1000)
-                let display_time = date.toLocaleTimeString()
+                let displayTime = date.toLocaleTimeString()
                 if (date.getDate() != new Date().getDate()) {
-                    display_time = date.toLocaleDateString() + " " + display_time
+                    displayTime = date.toLocaleDateString() + " " + displayTime
                 }
-                let popupHtml = "<span class='map-popup-name'>" + tracker['name'] + "</span><a class='" + toggle_classes + "' id='map-popup-track-toggle-" + tracker.id + "' onclick='toggleTrack(" + tracker.id + ")'><span class='oi' data-glyph='location' aria-hidden='true'></span></a><br><span class='map-popup-ts'>" + display_time + "</span>"
+                let popupHtml = "<span class='map-popup-name'>" + tracker['name'] + "</span><a class='" + toggleClasses + "' id='map-popup-track-toggle-" + tracker.id + "' onclick='toggleTrack(" + tracker.id + ")'><span class='oi' data-glyph='location' aria-hidden='true'></span></a><br><span class='map-popup-ts'>" + displayTime + "</span>"
                 if (tracker['marker']){
                     tracker["marker"].setLngLat([tracker['lng'], tracker['lat']])
                     tracker["popup"].setHTML(popupHtml)

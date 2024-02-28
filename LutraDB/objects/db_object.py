@@ -1,8 +1,3 @@
-import json
-
-from LutraDB.database import LutraDB
-
-
 def setter(func):
     def _setter(self, *args, **kwargs):
         self.flushed = False
@@ -19,7 +14,7 @@ def getter(func):
 
 
 class DbObject:
-    def __init__(self, db: LutraDB):
+    def __init__(self, db):
         self._lutraDb_db = db
         self._lutraDb_tableName: None | str = None
         self.id: None | int = None

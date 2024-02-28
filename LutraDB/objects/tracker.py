@@ -5,7 +5,7 @@ class Tracker(DbObject):
     def __init__(self, db):
         super().__init__(db)
         self._lutraDb_tableName = "Trackers"
-        self.columns = ["ROWID", "Name", "TtnIdentifier", "LastSeen"]
+        self.columns = ["ROWID", "Name", "TtnIdentifier", "LastSeen", "Voltage"]
 
     @staticmethod
     def get_all(db):
@@ -56,10 +56,18 @@ class Tracker(DbObject):
         self.values["TtnIdentifier"] = ttn_identifier
 
     @getter
-    def get_last_seen(self, last_seen):
+    def get_last_seen(self):
         return self.values["LastSeen"]
 
     @setter
     def set_last_seen(self, last_seen):
         self.values["LastSeen"] = last_seen
-        
+
+    @getter
+    def get_voltage(self):
+        return self.values["Voltage"]
+
+
+    @setter
+    def set_voltage(self, voltage):
+        self.values["Voltage"] = voltage
