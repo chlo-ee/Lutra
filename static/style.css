@@ -198,6 +198,30 @@ body {
     visibility: hidden;
 }
 
+#message-container {
+    top: 4em;
+    margin: 1em;
+    position: absolute;
+    left: 0;
+    right: 0;
+    text-align: center;
+    z-index: 3;
+}
+
+.message-element {
+    margin: 0.2em;
+    background: #1E1E1E;
+    padding: 1em;
+    opacity: 0.8;
+    border-radius: 5px;
+    border: 1px solid;
+    box-shadow: 0px 20px 20px #1E1E1E;
+}
+
+.oi.message-icon {
+    float: left;
+}
+
 @keyframes blink {
     from,
     to {

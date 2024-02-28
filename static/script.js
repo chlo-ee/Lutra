@@ -277,6 +277,10 @@ async function loadTrackers(fitBounds) {
                 }
                 lngLats.extend(new maptilersdk.LngLat(tracker['lng'], tracker['lat']))
             }
+
+            if (tracker['bat'] < 15) {
+                showMessage("battery-empty", "Battery of " + tracker["name"] + " is almost empty.", 5000)
+            }
         }
         if (fitBounds) {
             map.fitBounds(lngLats, {
@@ -322,6 +326,26 @@ function checkLogin() {
         loadTrackers(true)
         window.setTimeout(updateData, 10000)
     })
+}
+
+function showMessage(icon, message, timeout=10000) {
+    let messageDiv = document.createElement("div")
+    messageDiv.classList.add("message-element")
+    let iconSpan = document.createElement("span")
+    iconSpan.classList.add("oi")
+    iconSpan.classList.add("message-icon")
+    iconSpan.setAttribute("data-glyph", icon)
+    messageDiv.appendChild(iconSpan)
+    let messageSpan = document.createElement("span")
+    messageSpan.textContent = message
+    messageSpan.classList.add("message-text")
+    messageDiv.appendChild(messageSpan)
+    let messageContainer = document.getElementById("message-container")
+    messageContainer.appendChild(messageDiv)
+
+    window.setTimeout(() => {
+        messageContainer.removeChild(messageDiv)
+    }, timeout)
 }
 
 for (let element of document.getElementsByClassName("login-input")) {

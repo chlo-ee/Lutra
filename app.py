@@ -25,7 +25,7 @@ from mqtt import LutraMQTT
 import configparser
 
 
-version = "0.3.0"
+version = "0.4.0"
 
 config = configparser.ConfigParser()
 config.read('config.ini')

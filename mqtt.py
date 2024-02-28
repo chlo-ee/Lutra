@@ -83,7 +83,8 @@ class LutraMQTT(mqtt_client.Client):
             voltage = decoded[0] + (decoded[1] << 8)
             print(f"[MQTT] Received Bat={voltage} from {dev_id} - RSSI: {rssi}db")
             tracker.set_voltage(voltage)
-            if rssi >= -70 and gateway_location:
+            last_position = Position.get_last_by_tracker(client.db, tracker)
+            if rssi >= -70 and gateway_location and (not last_position or (last_position.get_source() == "GW" or last_position.get_timestamp() < time.time() - 1200)):
                 position = Position(client.db)
                 position.set_tracker_id(tracker.get_id())
                 position.set_timestamp(time.time())
@@ -91,8 +92,6 @@ class LutraMQTT(mqtt_client.Client):
                 position.set_longitude(gateway_location["longitude"])
                 position.set_source("GW")
                 position.save_record()
-
-
 
         tracker.set_rssi(rssi)
         tracker.set_last_seen(time.time())
