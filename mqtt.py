@@ -58,26 +58,41 @@ class LutraMQTT(mqtt_client.Client):
             return
         payload = parsed['uplink_message']['frm_payload']
         decoded = base64.b64decode(payload)
+
+        rssi = -1000
+        gateway_location = None
+        for gateway in parsed['uplink_message']['rx_metadata']:
+            if 'rssi' in gateway:
+                if gateway['rssi'] > rssi:
+                    rssi = gateway['rssi']
+                    if 'location' in gateway:
+                        gateway_location = gateway["location"]
+
         if len(decoded) == 8:
             lat = (decoded[0] + (decoded[1] << 8) + (decoded[2] << 16) + (decoded[3] << 24)) / 10000
             lng = (decoded[4] + (decoded[5] << 8) + (decoded[6] << 16) + (decoded[7] << 24)) / 10000
-            print(f"[MQTT] Received ({lat},{lng}) from {dev_id}")
+            print(f"[MQTT] Received ({lat},{lng}) from {dev_id} - RSSI: {rssi}db")
             position = Position(client.db)
             position.set_tracker_id(tracker.get_id())
             position.set_timestamp(time.time())
             position.set_latitude(lat)
             position.set_longitude(lng)
+            position.set_source("GPS")
             position.save_record()
         elif len(decoded) == 2:
             voltage = decoded[0] + (decoded[1] << 8)
-            print(f"[MQTT] Received Bat={voltage} from {dev_id}")
+            print(f"[MQTT] Received Bat={voltage} from {dev_id} - RSSI: {rssi}db")
             tracker.set_voltage(voltage)
+            if rssi >= -70 and gateway_location:
+                position = Position(client.db)
+                position.set_tracker_id(tracker.get_id())
+                position.set_timestamp(time.time())
+                position.set_latitude(gateway_location["latitude"])
+                position.set_longitude(gateway_location["longitude"])
+                position.set_source("GW")
+                position.save_record()
 
-        rssi = -1000
-        for gateway in parsed['uplink_message']['rx_metadata']:
-            if 'rssi' in gateway:
-                if gateway['rssi'] > rssi:
-                    rssi = gateway['rssi']
+
 
         tracker.set_rssi(rssi)
         tracker.set_last_seen(time.time())

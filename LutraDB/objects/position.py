@@ -8,7 +8,7 @@ class Position(DbObject):
     def __init__(self, db):
         super().__init__(db)
         self._lutraDb_tableName = "Positions"
-        self.columns = ["ROWID", "TrackerID", "Timestamp", "Latitude", "Longitude"]
+        self.columns = ["ROWID", "TrackerID", "Timestamp", "Latitude", "Longitude", "Source"]
 
     @staticmethod
     def get_last_by_tracker(db, tracker: Tracker):
@@ -92,4 +92,12 @@ class Position(DbObject):
     @setter
     def set_longitude(self, longitude):
         self.values["Longitude"] = longitude
+
+    @getter
+    def get_source(self):
+        return self.values["Source"]
+
+    @setter
+    def set_source(self, source):
+        self.values["Source"] = source
         

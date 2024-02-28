@@ -229,6 +229,7 @@ async function loadTrackers(fitBounds) {
                 trackers[tracker.id]['name'] = tracker['name']
                 trackers[tracker.id]['ts'] = tracker['ts']
                 trackers[tracker.id]['bat'] = tracker['bat']
+                trackers[tracker.id]['rssi'] = tracker['rssi']
                 tracker = trackers[tracker.id]
                 let trackSource = map.getSource("route_" + tracker.id)
                 if (trackSource) {
@@ -253,9 +254,10 @@ async function loadTrackers(fitBounds) {
                     tracker['name'] + "</span><a class='" + 
                     toggleClasses + "' id='map-popup-track-toggle-" + 
                     tracker.id + "' onclick='toggleTrack(" + 
-                    tracker.id + ")'><span class='oi' data-glyph='location' aria-hidden='true'></span></a><br><span class='map-popup-ts'>" + 
+                    tracker.id + ")'><span class='oi' data-glyph='location' aria-hidden='true' style='float: right;'></span></a><br><span class='map-popup-ts'>" + 
                     displayTime + "</span><br><span class='oi' data-glyph='battery-full' aria-hidden='true'></span>&nbsp;<span>" +
-                    tracker['bat'] + "%</span>"
+                    tracker['bat'] + "%</span><div style='float: right; display: inline; margin-left: 1em;'><span class='oi' data-glyph='signal' aria-hidden='true'></span>&nbsp;<span>" +
+                    tracker['rssi'] + "%</span></div>"
                 if (tracker['marker']){
                     tracker["marker"].setLngLat([tracker['lng'], tracker['lat']])
                     tracker["popup"].setHTML(popupHtml)

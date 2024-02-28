@@ -25,7 +25,7 @@ from mqtt import LutraMQTT
 import configparser
 
 
-version = "0.2.0"
+version = "0.3.0"
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -140,6 +140,7 @@ def trackers():
             d["lng"] = position.get_longitude()
             d["ts"] = position.get_timestamp()
             d["bat"] = round((tracker.get_voltage() - 3000) / 40)
+            d["rssi"] = min(160 + tracker.get_rssi(), 100)
         tracker_data["trackers"].append(d)
     return tracker_data
 
