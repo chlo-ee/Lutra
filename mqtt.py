@@ -50,6 +50,8 @@ class LutraMQTT(mqtt_client.Client):
             return
         if 'frm_payload' not in parsed['uplink_message']:
             return
+        if 'rx_metadata' not in parsed['uplink_message']:
+            return
 
         tracker = Tracker.get_by_ttn_identifier(client.db, dev_id)
         if not tracker:
@@ -71,6 +73,13 @@ class LutraMQTT(mqtt_client.Client):
             print(f"[MQTT] Received Bat={voltage} from {dev_id}")
             tracker.set_voltage(voltage)
 
+        rssi = -1000
+        for gateway in parsed['uplink_message']['rx_metadata']:
+            if 'rssi' in gateway:
+                if gateway['rssi'] > rssi:
+                    rssi = gateway['rssi']
+
+        tracker.set_rssi(rssi)
         tracker.set_last_seen(time.time())
         tracker.save_record()
 

@@ -228,6 +228,7 @@ async function loadTrackers(fitBounds) {
                 trackers[tracker.id]['lng'] = tracker['lng']
                 trackers[tracker.id]['name'] = tracker['name']
                 trackers[tracker.id]['ts'] = tracker['ts']
+                trackers[tracker.id]['bat'] = tracker['bat']
                 tracker = trackers[tracker.id]
                 let trackSource = map.getSource("route_" + tracker.id)
                 if (trackSource) {
@@ -248,7 +249,13 @@ async function loadTrackers(fitBounds) {
                 if (date.getDate() != new Date().getDate()) {
                     displayTime = date.toLocaleDateString() + " " + displayTime
                 }
-                let popupHtml = "<span class='map-popup-name'>" + tracker['name'] + "</span><a class='" + toggleClasses + "' id='map-popup-track-toggle-" + tracker.id + "' onclick='toggleTrack(" + tracker.id + ")'><span class='oi' data-glyph='location' aria-hidden='true'></span></a><br><span class='map-popup-ts'>" + displayTime + "</span>"
+                let popupHtml = "<span class='map-popup-name'>" + 
+                    tracker['name'] + "</span><a class='" + 
+                    toggleClasses + "' id='map-popup-track-toggle-" + 
+                    tracker.id + "' onclick='toggleTrack(" + 
+                    tracker.id + ")'><span class='oi' data-glyph='location' aria-hidden='true'></span></a><br><span class='map-popup-ts'>" + 
+                    displayTime + "</span><br><span class='oi' data-glyph='battery-full' aria-hidden='true'></span>&nbsp;<span>" +
+                    tracker['bat'] + "%</span>"
                 if (tracker['marker']){
                     tracker["marker"].setLngLat([tracker['lng'], tracker['lat']])
                     tracker["popup"].setHTML(popupHtml)
