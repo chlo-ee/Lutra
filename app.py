@@ -25,7 +25,7 @@ from mqtt import LutraMQTT
 import configparser
 
 
-version = "0.4.0"
+version = "0.5.0"
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -33,20 +33,14 @@ db_file = config['DB']['sqlite_file']
 db = database.LutraDB(db_file)
 db.check_upgrades()
 
-
-def init_jwt_secret():
-    key = token_bytes(64)
+jwt_secret = ""
+if "JWT_SECRET" not in db.metadata:
+    jwt_secret = token_bytes(64)
     db = database.LutraDB(db_file)
     meta_object = LutraMeta(db)
     meta_object.set_key("JWT_SECRET")
-    meta_object.set_value(key)
+    meta_object.set_value(jwt_secret)
     meta_object.save_record()
-    return key
-
-
-jwt_secret = ""
-if "JWT_SECRET" not in db.metadata:
-    jwt_secret = init_jwt_secret()
 else:
     jwt_secret = db.metadata["JWT_SECRET"]
 
@@ -139,8 +133,8 @@ def trackers():
             d["lat"] = position.get_latitude()
             d["lng"] = position.get_longitude()
             d["ts"] = position.get_timestamp()
-            d["bat"] = round((tracker.get_voltage() - 3000) / 40)
-            d["rssi"] = min(160 + tracker.get_rssi(), 100)
+            d["bat"] = round(map_value_to_percentage(tracker.get_voltage(), int(tracker.get_min_voltage() or 0), int(tracker.get_max_voltage() or 0))) #round((tracker.get_voltage() - 3000) / 40)
+            d["rssi"] = round(map_value_to_percentage(tracker.get_rssi(), int(tracker.get_min_rssi()) or 0, int(tracker.get_max_rssi() or 0)))
         tracker_data["trackers"].append(d)
     return tracker_data
 
@@ -203,6 +197,16 @@ def user_lookup_callback(_jwt_header, jwt_data):
     user.set_id(user_id)
     user.load_record()
     return user
+
+
+def map_value_to_percentage(value, minimum, maximum):
+    if minimum == maximum:
+        return 100
+    val_range = maximum - minimum
+    sane_value = min(max(value, minimum), maximum)
+    normalized_value = sane_value - minimum
+    percentage_factor = 100 / val_range
+    return normalized_value * percentage_factor
 
 
 if __name__ == '__main__':

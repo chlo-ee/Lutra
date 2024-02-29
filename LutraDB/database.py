@@ -7,7 +7,7 @@ from LutraDB.objects.lutra_meta import LutraMeta
 
 class LutraDB:
     def __init__(self, file):
-        self.db_version = 3
+        self.db_version = 4
         run_db_init = not os.path.isfile(file)
         self.connection = sqlite3.connect(file)
         self.metadata = {}
