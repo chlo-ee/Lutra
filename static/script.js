@@ -146,8 +146,12 @@ async function performGetRequestWithFeedback(url, feedback=true, reloadOnDenied=
 
 async function performPostWithFeedback(url, data) {
     animator.setPercentage(0)
+    let csrfCookie = getCookie("csrf_access_token")
     headers = {
         "Content-Type": "application/json",
+    }
+    if (csrfCookie) {
+        headers["X-CSRF-Token"] = csrfCookie
     }
 
     let promise = fetch(url, {
@@ -185,6 +189,18 @@ async function updateTrack(trackerId) {
                 })
             }
         })
+}
+
+function getCookie(cookieName) {
+    let cookies = document.cookie.split(';')
+    for(var cookie of cookies) {
+        let split = cookie.split('=')
+        let name = split[0].trim()
+        if (name === cookieName) {
+            return split[1].trim()
+        }
+    }
+    return null
 }
 
 function toggleTrack(trackerId) {
