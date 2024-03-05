@@ -413,4 +413,11 @@ document.getElementById("user-section").addEventListener("click", () => {
     document.getElementById("menu").classList.toggle("visible")
 })
 
+for (var element of document.getElementsByClassName("dialog-close")) {
+    element.addEventListener("click", () => {
+        console.log(element)
+        element.parentElement.parentElement.style.visibility = 'hidden'
+    })
+}
+
 checkLogin()

@@ -37,6 +37,7 @@
     <div id="map" style="visibility: hidden"></div>
     <div id="content-login-container" class="dialog-container">
         <div id="content-login-border" class="dialog-border">
+            <span class='oi content-window-icon' data-glyph='key' aria-hidden='true'></span>
             <span id="content-login-text" class="dialog-title">Log.In</span>
             <input type="text" class="text-input login-input" id="login-username" autofocus />
             <input type="password" class="text-input login-input" id="login-password" />
@@ -58,13 +59,16 @@
 <div id="dialog-change-password" class="dialog-container">
     <div class="dialog-border">
         <div class="dialog-close">x</div>
-        <span id="content-login-text" class="dialog-title">Change.Password</span>
-        <span>Old Password:</span>
-        <input type="password" class="text-input pw-change-input" id="change-old-password" />
-        <span>New Password:</span>
-        <input type="password" class="text-input pw-change-input" id="change-password-1" />
-        <span>Repeat:</span>
-        <input type="password" class="text-input pw-change-input" id="change-password-2" />
+        <span class='oi content-window-icon' data-glyph='lock-locked' aria-hidden='true'></span>
+        <span class="dialog-title">Change.Password</span>
+        <div class="dialog-content">
+            <span>Old Password:</span>
+            <input type="password" class="text-input pw-change-input" id="change-old-password" />
+            <span>New Password:</span>
+            <input type="password" class="text-input pw-change-input" id="change-password-1" />
+            <span>Repeat:</span>
+            <input type="password" class="text-input pw-change-input" id="change-password-2" />
+        </div>
     </div>
 </div>
 <script src="static/script.js"></script>
