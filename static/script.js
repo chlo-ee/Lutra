@@ -119,6 +119,7 @@ function getApiRoute(functionName, args=null) {
 
 var map = null
 let trackers = {}
+let openMessages = {}
 
 fetch("static/script.js")
     .then((response) => response.text())
@@ -295,7 +296,7 @@ async function loadTrackers(fitBounds) {
             }
 
             if (tracker['bat'] < 15) {
-                showMessage("battery-empty", "Battery of " + tracker["name"] + " is almost empty.", 5000)
+                showMessage("battery-empty", "Battery of " + tracker["name"] + " is low.", 120000)
             }
         }
         if (fitBounds) {
@@ -345,22 +346,30 @@ function checkLogin() {
 }
 
 function showMessage(icon, message, timeout=10000) {
-    let messageDiv = document.createElement("div")
-    messageDiv.classList.add("message-element")
-    let iconSpan = document.createElement("span")
-    iconSpan.classList.add("oi")
-    iconSpan.classList.add("message-icon")
-    iconSpan.setAttribute("data-glyph", icon)
-    messageDiv.appendChild(iconSpan)
-    let messageSpan = document.createElement("span")
-    messageSpan.textContent = message
-    messageSpan.classList.add("message-text")
-    messageDiv.appendChild(messageSpan)
+    let msgCheck = icon + message
     let messageContainer = document.getElementById("message-container")
-    messageContainer.appendChild(messageDiv)
+    if (msgCheck in openMessages) {
+        window.clearTimeout(openMessages[msgCheck]['timer'])
+    } else {
+        openMessages[msgCheck] = {}
+        let messageDiv = document.createElement("div")
+        messageDiv.classList.add("message-element")
+        let iconSpan = document.createElement("span")
+        iconSpan.classList.add("oi")
+        iconSpan.classList.add("message-icon")
+        iconSpan.setAttribute("data-glyph", icon)
+        messageDiv.appendChild(iconSpan)
+        let messageSpan = document.createElement("span")
+        messageSpan.textContent = message
+        messageSpan.classList.add("message-text")
+        messageDiv.appendChild(messageSpan)
+        messageContainer.appendChild(messageDiv)
+        openMessages[msgCheck]['div'] = messageDiv
+    }
 
-    window.setTimeout(() => {
-        messageContainer.removeChild(messageDiv)
+    openMessages[msgCheck]['timer'] = window.setTimeout(() => {
+        messageContainer.removeChild(openMessages[msgCheck]['div'])
+        delete openMessages[msgCheck]
     }, timeout)
 }
 
