@@ -10,6 +10,8 @@ from LutraDB.database import LutraDB
 from LutraDB.objects.position import Position
 from LutraDB.objects.tracker import Tracker
 
+packet_type_gps = 1
+packet_type_status = 2
 
 class LutraMQTT(mqtt_client.Client):
     def __init__(self, db_file, username, password, broker, port):
@@ -68,10 +70,12 @@ class LutraMQTT(mqtt_client.Client):
                     if 'location' in gateway:
                         gateway_location = gateway["location"]
 
-        if len(decoded) == 8:
-            lat = (decoded[0] + (decoded[1] << 8) + (decoded[2] << 16) + (decoded[3] << 24)) / 10000
-            lng = (decoded[4] + (decoded[5] << 8) + (decoded[6] << 16) + (decoded[7] << 24)) / 10000
-            print(f"[MQTT] Received ({lat},{lng}) from {dev_id} - RSSI: {rssi}db")
+        if decoded[0] >> 4 == packet_type_gps:
+            lat = (decoded[1] + (decoded[2] << 8) + (decoded[3] << 16) + (decoded[4] << 24)) / 10000
+            lng = (decoded[5] + (decoded[6] << 8) + (decoded[7] << 16) + (decoded[8] << 24)) / 10000
+            hdop = decoded[9]
+            sats = decoded[10]
+            print(f"[MQTT] Received ({lat},{lng}; hdop={hdop}; sats={sats}) from {dev_id} - RSSI: {rssi}db")
             position = Position(client.db)
             position.set_tracker_id(tracker.get_id())
             position.set_timestamp(time.time())
@@ -79,8 +83,8 @@ class LutraMQTT(mqtt_client.Client):
             position.set_longitude(lng)
             position.set_source("GPS")
             position.save_record()
-        elif len(decoded) == 2:
-            voltage = int(decoded[0] + (decoded[1] << 8))
+        elif decoded[0] >> 4 == packet_type_status:
+            voltage = int(decoded[1] + (decoded[2] << 8))
             print(f"[MQTT] Received Bat={voltage} from {dev_id} - RSSI: {rssi}db")
             tracker.set_voltage(voltage)
             if tracker.get_min_voltage() is None or voltage < int(tracker.get_min_voltage()):

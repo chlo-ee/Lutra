@@ -1,19 +1,12 @@
+import configparser
+import sys
 import threading
-from datetime import timedelta
-from datetime import datetime
-from datetime import timezone
+from datetime import timedelta, datetime, timezone
 from secrets import token_bytes
 
 from flask import Flask, render_template, request, jsonify
-import sys
-
-from flask_jwt_extended import current_user
-from flask_jwt_extended import create_access_token
-from flask_jwt_extended import get_jwt
-from flask_jwt_extended import jwt_required
-from flask_jwt_extended import JWTManager
-from flask_jwt_extended import set_access_cookies
-from flask_jwt_extended import unset_jwt_cookies
+from flask_jwt_extended import current_user, create_access_token, get_jwt, jwt_required, JWTManager, set_access_cookies, \
+    unset_jwt_cookies
 
 from LutraDB import database
 from LutraDB.objects.lutra_meta import LutraMeta
@@ -22,10 +15,8 @@ from LutraDB.objects.tracker import Tracker
 from LutraDB.objects.user import User
 from LutraDB.objects.user_tracker import UserTracker
 from mqtt import LutraMQTT
-import configparser
 
-
-version = "0.5.2"
+version = "0.6.0"
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -51,7 +42,11 @@ app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 app.config['JWT_SECRET_KEY'] = jwt_secret
 app.config["JWT_COOKIE_SECURE"] = config['App']['production']
 
-mqtt = LutraMQTT(db_file, config['MQTT']['User'], config['MQTT']['Password'], config['MQTT']['Server'], int(config['MQTT']['Port']))
+mqtt = LutraMQTT(db_file,
+                 config['MQTT']['User'],
+                 config['MQTT']['Password'],
+                 config['MQTT']['Server'],
+                 int(config['MQTT']['Port']))
 mqtt_thread = threading.Thread(target=mqtt.lutra_connect, args=[])
 mqtt_thread.start()
 
