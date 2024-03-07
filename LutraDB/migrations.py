@@ -7,5 +7,7 @@ migrations = {
     3: ["ALTER TABLE Trackers ADD COLUMN MinVoltage",
         "ALTER TABLE Trackers ADD COLUMN MaxVoltage",
         "ALTER TABLE Trackers ADD COLUMN MinRSSI",
-        "ALTER TABLE Trackers ADD COLUMN MaxRSSI"]
+        "ALTER TABLE Trackers ADD COLUMN MaxRSSI"],
+    4: ["ALTER TABLE Positions ADD COLUMN HDOP",
+        "ALTER TABLE Positions ADD COLUMN Contacts"]
 }

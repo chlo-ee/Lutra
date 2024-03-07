@@ -16,7 +16,7 @@ from LutraDB.objects.user import User
 from LutraDB.objects.user_tracker import UserTracker
 from mqtt import LutraMQTT
 
-version = "0.6.0"
+version = "0.7.0"
 
 config = configparser.ConfigParser()
 config.read('config.ini')

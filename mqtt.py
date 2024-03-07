@@ -82,6 +82,8 @@ class LutraMQTT(mqtt_client.Client):
             position.set_latitude(lat)
             position.set_longitude(lng)
             position.set_source("GPS")
+            position.set_hdop(hdop)
+            position.set_contacts(sats)
             position.save_record()
         elif decoded[0] >> 4 == packet_type_status:
             voltage = int(decoded[1] + (decoded[2] << 8))
@@ -99,6 +101,7 @@ class LutraMQTT(mqtt_client.Client):
                 position.set_latitude(gateway_location["latitude"])
                 position.set_longitude(gateway_location["longitude"])
                 position.set_source("GW")
+                position.set_contacts(1)
                 position.save_record()
 
         tracker.set_rssi(rssi)
