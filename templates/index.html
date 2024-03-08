@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <title>Lutra</title>
     <link rel="icon" type="image/x-icon" href="static/img/lutra.ico">
-    <link rel="stylesheet" href="static/style.css">
-    <link rel="stylesheet" href="static/fonts/open-iconic-1.1.1/font/css/open-iconic.css">
+    <link rel="stylesheet" href="static/fonts/eos/css/eos-icons.css">
     <script src="https://cdn.maptiler.com/maptiler-sdk-js/v1.2.0/maptiler-sdk.umd.min.js"></script>
-    <link href="https://cdn.maptiler.com/maptiler-sdk-js/v1.2.0/maptiler-sdk.css" rel="stylesheet" />
+    <link href="https://cdn.maptiler.com/maptiler-sdk-js/v1.2.0/maptiler-sdk.css" rel="stylesheet">
+    <link rel="stylesheet" href="static/style.css">
 </head>
 <body>
 <div id="head">
@@ -16,7 +16,7 @@
         <span>Lutra</span>
     </div>
     <div id="user-section" style="visibility: hidden">
-        <span class="oi" data-glyph="person" aria-hidden="true"></span>
+        <span class="eos-icons" id="user-section-icon" aria-hidden="true">person</span>
         <span id="user-name"></span>
     </div>
 </div>
@@ -37,7 +37,7 @@
     <div id="map" style="visibility: hidden"></div>
     <div id="content-login-container" class="dialog-container">
         <div id="content-login-border" class="dialog-border">
-            <span class='oi content-window-icon' data-glyph='key' aria-hidden='true'></span>
+            <span class='eos-icons content-window-icon' aria-hidden='true'>login</span>
             <span id="content-login-text" class="dialog-title">Log.In</span>
             <input type="text" class="text-input login-input" id="login-username" autofocus />
             <input type="password" class="text-input login-input" id="login-password" />
@@ -59,7 +59,7 @@
 <div id="dialog-change-password" class="dialog-container">
     <div class="dialog-border">
         <div class="dialog-close">x</div>
-        <span class='oi content-window-icon' data-glyph='lock-locked' aria-hidden='true'></span>
+        <span class='eos-icons content-window-icon' aria-hidden='true'>password</span>
         <span class="dialog-title">Change.Password</span>
         <div class="dialog-content">
             <span>Old Password:</span>

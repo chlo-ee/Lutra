@@ -5,7 +5,7 @@ class Tracker(DbObject):
     def __init__(self, db):
         super().__init__(db)
         self._lutraDb_tableName = "Trackers"
-        self.columns = ["ROWID", "Name", "TtnIdentifier", "LastSeen", "Voltage", "RSSI", "MinVoltage", "MaxVoltage", "MinRSSI", "MaxRSSI"]
+        self.columns = ["ROWID", "Name", "TtnIdentifier", "LastSeen", "Voltage", "RSSI", "MinVoltage", "MaxVoltage", "MinRSSI", "MaxRSSI", "Deviation"]
 
     @staticmethod
     def get_all(db):
@@ -111,3 +111,11 @@ class Tracker(DbObject):
     @setter
     def set_max_rssi(self, rssi):
         self.values["MaxRSSI"] = rssi
+
+    @getter
+    def get_deviation(self):
+        return self.values["Deviation"]
+
+    @setter
+    def set_deviation(self, deviation):
+        self.values["Deviation"] = deviation

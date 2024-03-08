@@ -36,6 +36,7 @@ def addtracker():
     tracker = Tracker(db)
     tracker.set_ttn_identifier(ttn_identifier)
     tracker.set_name(input("Name: "))
+    tracker.set_deviation(int(input("Deviation: ")))
     tracker.save_record()
     print("Tracker created.")
 

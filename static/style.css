@@ -45,9 +45,18 @@ body {
 }
 
 #user-section {
-    margin-top: 1em;
+    margin-top: 0.8em;
     float: right;
     cursor: pointer;
+}
+
+#user-section-icon {
+    font-size: 1.5em;
+}
+
+#user-name {
+    line-height: 1.4em;
+    vertical-align: bottom;
 }
 
 #head-title {
@@ -181,7 +190,7 @@ body {
     float: right;
     border: 1px solid #3FB5A0;
     border-radius: 2px;
-    padding: 0 0.2em 0 0.2em;
+    padding: 0 0.2em 0.2em 0.2em;
     height: 1.3em;
     background-color: #3FB5A0;
     color: #0A0A0A;
@@ -225,8 +234,8 @@ body {
     top: 4em;
     margin: 1em;
     position: absolute;
-    left: 0;
-    right: 0;
+    left: 20%;
+    right: 20%;
     text-align: center;
     z-index: 3;
 }
@@ -241,7 +250,7 @@ body {
     box-shadow: 0px 20px 20px #1E1E1E;
 }
 
-.oi.message-icon {
+.message-icon {
     float: left;
 }
 
@@ -258,6 +267,10 @@ body {
 #content-login-text {
     padding-left: 0;
     width: 100%;
+}
+
+.eos-icons {
+    font-size: inherit;
 }
 
 @keyframes blink {

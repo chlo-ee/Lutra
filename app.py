@@ -16,7 +16,7 @@ from LutraDB.objects.user import User
 from LutraDB.objects.user_tracker import UserTracker
 from mqtt import LutraMQTT
 
-version = "0.7.1"
+version = "0.8.0"
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -131,6 +131,8 @@ def trackers():
             d["ts"] = position.get_timestamp()
             d["bat"] = round(map_value_to_percentage(tracker.get_voltage(), int(tracker.get_min_voltage() or 0), int(tracker.get_max_voltage() or 0))) #round((tracker.get_voltage() - 3000) / 40)
             d["rssi"] = round(map_value_to_percentage(tracker.get_rssi(), int(tracker.get_min_rssi()) or 0, int(tracker.get_max_rssi() or 0)))
+            d["range"] = 0 if position.get_hdop() is None else int(position.get_hdop()) * int(tracker.get_deviation())
+            d["sats"] = 0 if position.get_contacts() is None else int(position.get_contacts())
         tracker_data["trackers"].append(d)
     return tracker_data
 

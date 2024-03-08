@@ -9,5 +9,7 @@ migrations = {
         "ALTER TABLE Trackers ADD COLUMN MinRSSI",
         "ALTER TABLE Trackers ADD COLUMN MaxRSSI"],
     4: ["ALTER TABLE Positions ADD COLUMN HDOP",
-        "ALTER TABLE Positions ADD COLUMN Contacts"]
+        "ALTER TABLE Positions ADD COLUMN Contacts"],
+    5: ["ALTER TABLE Trackers ADD COLUMN Deviation",
+        "UPDATE Trackers SET Deviation=150"]
 }

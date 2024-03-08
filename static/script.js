@@ -247,6 +247,8 @@ async function loadTrackers(fitBounds) {
                 trackers[tracker.id]['ts'] = tracker['ts']
                 trackers[tracker.id]['bat'] = tracker['bat']
                 trackers[tracker.id]['rssi'] = tracker['rssi']
+                trackers[tracker.id]['range'] = tracker['range']
+                trackers[tracker.id]['sats'] = tracker['sats']
                 tracker = trackers[tracker.id]
                 let trackSource = map.getSource("route_" + tracker.id)
                 if (trackSource) {
@@ -271,12 +273,15 @@ async function loadTrackers(fitBounds) {
                     tracker['name'] + "</span><a class='" + 
                     toggleClasses + "' id='map-popup-track-toggle-" + 
                     tracker.id + "' onclick='toggleTrack(" + 
-                    tracker.id + ")'><span class='oi' data-glyph='location' aria-hidden='true' style='float: right;'></span></a><br><span class='map-popup-ts'>" + 
-                    displayTime + "</span><br><span class='oi' data-glyph='battery-full' aria-hidden='true'></span>&nbsp;<span>" +
-                    tracker['bat'] + "%</span><div style='float: right; display: inline; margin-left: 1em;'><span class='oi' data-glyph='signal' aria-hidden='true'></span>&nbsp;<span>" +
-                    tracker['rssi'] + "%</span></div>"
+                    tracker.id + ")'><span class='eos-icons' aria-hidden='true' style='float: right; width: 1em; margin:0.2em 0 0.2em 0.2em'>route</span></a><br><span class='map-popup-ts'>" + 
+                    displayTime + "</span><br><span class='eos-icons' aria-hidden='true'>battery_full</span>&nbsp;<span>" +
+                    tracker['bat'] + "%</span><div style='float: right; display: inline; margin-left: 1em;'><span class='eos-icons' aria-hidden='true'>signal_cellular_alt</span>&nbsp;<span>" +
+                    tracker['rssi'] + "%</span></div><br><span class='eos-icons' aria-hidden='true'>satellite_alt</span>&nbsp;<span>" +
+                    tracker['sats'] + " Sats</span><div style='float: right; display: inline; margin-left: 1em;'><span class='eos-icons' aria-hidden='true'>troubleshooting</span>&nbsp;<span>" +
+                    tracker['range'] + "m</span></div>"
                 if (tracker['marker']){
                     tracker["marker"].setLngLat([tracker['lng'], tracker['lat']])
+                    map.getSource("tracker-circle-" + tracker.id).setData(createGeoJSONCircle([tracker['lng'], tracker['lat']], tracker['range']).data)
                     tracker["popup"].setHTML(popupHtml)
                 } else {
                     let popup = new maptilersdk.Popup({
@@ -291,12 +296,29 @@ async function loadTrackers(fitBounds) {
                         .setPopup(popup)
                         .addTo(map);
                     trackers[tracker.id]['popup'] = popup
+
+                    map.addSource("tracker-circle-" + tracker.id, createGeoJSONCircle([tracker['lng'], tracker['lat']], tracker['range']))
+
+                    map.addLayer({
+                        'id': 'tracker-circle-layer-' + tracker.id,
+                        "type": "fill",
+                        "source": "tracker-circle-" + tracker.id,
+                        "layout": {},
+                        "paint": {
+                            "fill-color": "#3FB5A0",
+                            "fill-opacity": 0.4
+                        }
+                    })
                 }
                 lngLats.extend(new maptilersdk.LngLat(tracker['lng'], tracker['lat']))
             }
 
             if (tracker['bat'] < 15) {
-                showMessage("battery-empty", "Battery of " + tracker["name"] + " is low.", 120000)
+                showMessage("battery_alert", "Battery of " + tracker["name"] + " is low.", 120000)
+            }
+
+            if (tracker['range'] > 20) {
+                showMessage("gps_not_fixed", "Tracking of " + tracker["name"] + " is unreliable.", 30000)
             }
         }
         if (fitBounds) {
@@ -340,8 +362,10 @@ function checkLogin() {
         document.getElementById('content-login-container').style.visibility = 'hidden'
         document.getElementById('map').style.visibility = 'visible'
         loadMap()
-        loadTrackers(true)
-        window.setTimeout(updateData, 10000)
+        map.on('load', () => {
+            loadTrackers(true)
+            window.setTimeout(updateData, 10000)
+        })
     })
 }
 
@@ -355,9 +379,9 @@ function showMessage(icon, message, timeout=10000) {
         let messageDiv = document.createElement("div")
         messageDiv.classList.add("message-element")
         let iconSpan = document.createElement("span")
-        iconSpan.classList.add("oi")
+        iconSpan.classList.add("eos-icons")
         iconSpan.classList.add("message-icon")
-        iconSpan.setAttribute("data-glyph", icon)
+        iconSpan.innerText = icon
         messageDiv.appendChild(iconSpan)
         let messageSpan = document.createElement("span")
         messageSpan.textContent = message
@@ -371,6 +395,45 @@ function showMessage(icon, message, timeout=10000) {
         messageContainer.removeChild(openMessages[msgCheck]['div'])
         delete openMessages[msgCheck]
     }, timeout)
+}
+
+function createGeoJSONCircle(center, radiusM) {
+    let points = 128
+
+    var coords = {
+        latitude: center[1],
+        longitude: center[0]
+    }
+
+    var km = radiusM / 1000
+
+    var ret = []
+    var distanceX = km/(111.320*Math.cos(coords.latitude*Math.PI/180))
+    var distanceY = km/110.574
+
+    var theta, x, y
+    for(var i=0; i<points; i++) {
+        theta = (i/points)*(2*Math.PI)
+        x = distanceX*Math.cos(theta)
+        y = distanceY*Math.sin(theta)
+
+        ret.push([coords.longitude+x, coords.latitude+y])
+    }
+    ret.push(ret[0])
+
+    return {
+        "type": "geojson",
+        "data": {
+            "type": "FeatureCollection",
+            "features": [{
+                "type": "Feature",
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [ret]
+                }
+            }]
+        }
+    }
 }
 
 for (let element of document.getElementsByClassName("login-input")) {
