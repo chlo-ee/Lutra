@@ -277,7 +277,7 @@ async function loadTrackers(fitBounds) {
                     displayTime + "</span><br><span class='eos-icons' aria-hidden='true'>battery_full</span>&nbsp;<span>" +
                     tracker['bat'] + "%</span><div style='float: right; display: inline; margin-left: 1em;'><span class='eos-icons' aria-hidden='true'>signal_cellular_alt</span>&nbsp;<span>" +
                     tracker['rssi'] + "%</span></div><br><span class='eos-icons' aria-hidden='true'>satellite_alt</span>&nbsp;<span>" +
-                    tracker['sats'] + " Sats</span><div style='float: right; display: inline; margin-left: 1em;'><span class='eos-icons' aria-hidden='true'>troubleshooting</span>&nbsp;<span>" +
+                    tracker['sats'] + "</span><div style='float: right; display: inline; margin-left: 1em;'><span class='eos-icons' aria-hidden='true'>troubleshooting</span>&nbsp;<span>" +
                     tracker['range'] + "m</span></div>"
                 if (tracker['marker']){
                     tracker["marker"].setLngLat([tracker['lng'], tracker['lat']])

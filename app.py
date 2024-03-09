@@ -16,7 +16,7 @@ from LutraDB.objects.user import User
 from LutraDB.objects.user_tracker import UserTracker
 from mqtt import LutraMQTT
 
-version = "0.8.0"
+version = "0.8.1"
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -86,7 +86,7 @@ def track(tracker_id):
         last_added = False
         for position in positions:
             if (len(t) == 0 or abs(t[-1]["lat"] - position.get_latitude()) > 0.0005 or abs(t[-1]["lng"] - position.get_longitude()) > 0.0005)\
-                    and position.get_source() == "GPS" and (position.get_hdop() is None or position.get_hdop() <= 1 or (position.get_contacts() is not None and position.get_contacts() >= 13)):
+                    and position.get_source() == "GPS" and (position.get_hdop() is None or int(position.get_hdop()) * int(tracker.get_deviation()) <= 10 or (position.get_contacts() is not None and int(position.get_contacts()) >= 8)):
                 t.append({
                     "lat": position.get_latitude(),
                     "lng": position.get_longitude(),
