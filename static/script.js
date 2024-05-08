@@ -270,7 +270,7 @@ async function loadTrackers(fitBounds) {
                     displayTime = date.toLocaleDateString() + " " + displayTime
                 }
                 let popupHtml = "<span class='map-popup-name'>" + 
-                    tracker['name'] + "</span><a class='" + 
+                    encodeHtml(tracker['name']) + "</span><a class='" + 
                     toggleClasses + "' id='map-popup-track-toggle-" + 
                     tracker.id + "' onclick='toggleTrack(" + 
                     tracker.id + ")'><span class='eos-icons' aria-hidden='true' style='float: right; width: 1em; margin:0.2em 0 0.2em 0.2em'>route</span></a><br><span class='map-popup-ts'>" + 
@@ -434,6 +434,12 @@ function createGeoJSONCircle(center, radiusM) {
             }]
         }
     }
+}
+
+function encodeHtml(string) {
+    let span = document.createElement('span');
+    span.innerText = string;
+    return span.innerHTML;
 }
 
 for (let element of document.getElementsByClassName("login-input")) {

@@ -86,7 +86,7 @@ def track(tracker_id):
         last_added = False
         for position in positions:
             if (len(t) == 0 or abs(t[-1]["lat"] - position.get_latitude()) > 0.0005 or abs(t[-1]["lng"] - position.get_longitude()) > 0.0005)\
-                    and position.get_source() == "GPS" and (position.get_hdop() is None or int(position.get_hdop()) * int(tracker.get_deviation()) <= 10 or (position.get_contacts() is not None and int(position.get_contacts()) >= 8)):
+                    and position.get_source() == "GPS" and (position.get_hdop() is None or int(position.get_hdop()) * int(tracker.get_deviation()) <= 30 or (position.get_contacts() is not None and int(position.get_contacts()) >= 4)):
                 t.append({
                     "lat": position.get_latitude(),
                     "lng": position.get_longitude(),
